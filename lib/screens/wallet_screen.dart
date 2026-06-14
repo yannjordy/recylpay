@@ -14,7 +14,9 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   bool _showWithdraw = false;
+  bool _showDeposit = false;
   final _amountController = TextEditingController();
+  final _depositController = TextEditingController();
   final _phoneController = TextEditingController(text: '+237');
   final _scrollController = ScrollController();
   final _historyKey = GlobalKey();
@@ -32,6 +34,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void dispose() {
     _amountController.dispose();
+    _depositController.dispose();
     _phoneController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -83,22 +86,31 @@ class _WalletScreenState extends State<WalletScreen> {
                       children: [
                         Expanded(
                           child: PillButton(
+                            label: 'Dépôt',
+                            icon: Icons.add_rounded,
+                            color: AppColors.blue,
+                            onTap: () => setState(() => _showDeposit = !_showDeposit),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PillButton(
                             label: 'Retrait',
                             icon: Icons.logout_rounded,
                             onTap: () => setState(() => _showWithdraw = !_showWithdraw),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _scrollToHistory,
                             icon: const Icon(Icons.history_rounded),
-                            label: const Text('Historique'),
+                            label: const Text('Histo.'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.green,
                               side: const BorderSide(color: AppColors.green, width: 1.5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
                             ),
                           ),
                         ),
@@ -108,6 +120,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              if (_showDeposit) _buildDepositForm(wallet),
               if (_showWithdraw) _buildWithdrawForm(wallet),
               Row(
                 key: _historyKey,
@@ -139,6 +152,67 @@ class _WalletScreenState extends State<WalletScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDepositForm(WalletProvider wallet) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Dépôt Mobile Money', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 4),
+          const Text('Commission de 2% appliquée sur chaque dépôt.', style: TextStyle(color: AppColors.grey, fontSize: 12)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _depositController,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: 'Montant à déposer',
+              labelStyle: TextStyle(color: AppColors.grey),
+              suffixText: 'FCFA',
+              suffixStyle: TextStyle(color: AppColors.green),
+              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.glassBorder)),
+              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.green)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: PillButton(label: 'Annuler', color: AppColors.softBlack, onTap: () {
+                setState(() { _showDeposit = false; _depositController.clear(); });
+              })),
+              const SizedBox(width: 12),
+              Expanded(child: PillButton(label: 'Déposer', onTap: () async {
+                final a = double.tryParse(_depositController.text);
+                if (a == null || a <= 0) return;
+                final ok = await wallet.deposit(a);
+                if (ok && mounted) {
+                  _depositController.clear();
+                  setState(() => _showDeposit = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${a.toInt()} FCFA déposés! (commission: ${(a * 0.02).toInt()} FCFA)'),
+                      backgroundColor: AppColors.green,
+                    ),
+                  );
+                }
+              })),
+            ],
+          ),
+          if (wallet.error != null) ...[
+            const SizedBox(height: 8),
+            Text(wallet.error!, style: const TextStyle(color: AppColors.red)),
+          ],
+        ],
       ),
     );
   }

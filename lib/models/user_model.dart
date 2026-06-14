@@ -17,6 +17,7 @@ class UserModel {
   final String? referralCode;
   final String? referredBy;
   final double referralEarnings;
+  final int points;
 
   UserModel({
     required this.id,
@@ -37,6 +38,7 @@ class UserModel {
     String? referralCode,
     this.referredBy,
     this.referralEarnings = 0,
+    this.points = 5,
   })  : uniqueId = uniqueId ?? _generateUniqueId(name),
         createdAt = createdAt ?? DateTime.now(),
         referralCode = referralCode ?? generateReferralCode(name);
@@ -72,6 +74,7 @@ class UserModel {
         'referral_code': referralCode,
         'referred_by': referredBy,
         'referral_earnings': referralEarnings,
+        'points': points,
       };
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -97,6 +100,7 @@ class UserModel {
         referralCode: json['referral_code'] as String?,
         referredBy: json['referred_by'] as String?,
         referralEarnings: (json['referral_earnings'] as num?)?.toDouble() ?? 0,
+        points: json['points'] as int? ?? 5,
       );
 
   UserModel copyWith({
@@ -118,6 +122,7 @@ class UserModel {
     String? referralCode,
     String? referredBy,
     double? referralEarnings,
+    int? points,
   }) =>
       UserModel(
         id: id ?? this.id,
@@ -138,6 +143,7 @@ class UserModel {
         referralCode: referralCode ?? this.referralCode,
         referredBy: referredBy ?? this.referredBy,
         referralEarnings: referralEarnings ?? this.referralEarnings,
+        points: points ?? this.points,
       );
 
   String get roleLabel {

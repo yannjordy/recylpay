@@ -13,6 +13,8 @@ class WalletProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  static const double commissionRate = 0.02; // 2%
+
   WalletProvider() {
     _transactions = List.from(MockData.transactions);
   }
@@ -45,6 +47,35 @@ class WalletProvider extends ChangeNotifier {
   void clearAllTransactions() {
     _transactions.clear();
     notifyListeners();
+  }
+
+  Future<bool> deposit(double amount) async {
+    if (amount <= 0) return false;
+    final commission = amount * commissionRate;
+    final netAmount = amount - commission;
+    _balance += netAmount;
+    _transactions.insert(0, TransactionModel(
+      id: 'dep_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'user_self',
+      type: 'deposit',
+      amount: amount,
+      status: 'completed',
+      reference: 'DEP-${DateTime.now().millisecondsSinceEpoch}',
+      description: 'Dépôt de ${amount.toInt()} FCFA (comm. ${commission.toInt()} FCFA)',
+      createdAt: DateTime.now(),
+    ));
+    _transactions.insert(1, TransactionModel(
+      id: 'com_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'user_self',
+      type: 'commission',
+      amount: commission,
+      status: 'completed',
+      reference: 'COM-${DateTime.now().millisecondsSinceEpoch}',
+      description: 'Commission 2% sur dépôt',
+      createdAt: DateTime.now(),
+    ));
+    notifyListeners();
+    return true;
   }
 
   Future<bool> requestWithdrawal(double amount, String phone) async {

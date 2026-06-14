@@ -224,6 +224,7 @@ class AuthProvider extends ChangeNotifier {
       referralCode: data['referral_code'] as String?,
       referredBy: data['referred_by'] as String?,
       referralEarnings: (data['referral_earnings'] as num?)?.toDouble() ?? 0,
+      points: (data['points'] as num?)?.toInt() ?? 5,
     );
   }
 
@@ -232,9 +233,69 @@ class AuthProvider extends ChangeNotifier {
     return 'https://recylpay.com/parrainage?code=${_user!.referralCode}';
   }
 
-  void setMockUser(UserModel user) {
-    _user = user;
-    _isLoggedIn = true;
+  Future<void> addPoints(int amount) async {
+    if (_user == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('current_email');
+    if (email == null) return;
+    final usersJson = prefs.getString('registered_users') ?? '{}';
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+    if (!users.containsKey(email)) return;
+    final data = Map<String, dynamic>.from(users[email]);
+    final current = (data['points'] as num?)?.toInt() ?? 5;
+    data['points'] = current + amount;
+    users[email] = data;
+    await prefs.setString('registered_users', jsonEncode(users));
+    _user = _userFromMap(email, data);
+    notifyListeners();
+  }
+
+  Future<void> completeTaskWithUser(String otherUserEmail, String taskType) async {
+    if (_user == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('current_email');
+    if (email == null) return;
+    final usersJson = prefs.getString('registered_users') ?? '{}';
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+
+    int pointsGained;
+    double amountPaid;
+    switch (taskType) {
+      case 'tri':
+        pointsGained = 3;
+        amountPaid = 500;
+      case 'ramassage':
+        pointsGained = 5;
+        amountPaid = 1000;
+      case 'livraison':
+        pointsGained = 4;
+        amountPaid = 800;
+      default:
+        pointsGained = 2;
+        amountPaid = 300;
+    }
+
+    // Update current user: add points, deduct balance
+    final myData = Map<String, dynamic>.from(users[email]);
+    myData['points'] = ((myData['points'] as num?)?.toInt() ?? 5) + pointsGained;
+    myData['completed_missions'] = ((myData['completed_missions'] as num?)?.toInt() ?? 0) + 1;
+    myData['balance'] = ((myData['balance'] as num?)?.toDouble() ?? 0) + amountPaid;
+    users[email] = myData;
+
+    // Update other user: deduct balance
+    if (users.containsKey(otherUserEmail)) {
+      final otherData = Map<String, dynamic>.from(users[otherUserEmail]);
+      final otherBalance = (otherData['balance'] as num?)?.toDouble() ?? 0;
+      if (otherBalance >= amountPaid) {
+        otherData['balance'] = otherBalance - amountPaid;
+        otherData['completed_missions'] = ((otherData['completed_missions'] as num?)?.toInt() ?? 0) + 1;
+        otherData['points'] = ((otherData['points'] as num?)?.toInt() ?? 5) + pointsGained;
+        users[otherUserEmail] = otherData;
+      }
+    }
+
+    await prefs.setString('registered_users', jsonEncode(users));
+    _user = _userFromMap(email, myData);
     notifyListeners();
   }
 }

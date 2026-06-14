@@ -555,7 +555,12 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
             !u.role.toLowerCase().contains(q)) return false;
       }
       return true;
-    }).toList();
+    }).toList()
+      ..sort((a, b) {
+        final scoreA = a.points + a.completedMissions * 10;
+        final scoreB = b.points + b.completedMissions * 10;
+        return scoreB.compareTo(scoreA);
+      });
 
     return Column(
       children: [
@@ -708,6 +713,22 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                     Text(user.rating.toStringAsFixed(1), style: const TextStyle(color: AppColors.yellow, fontSize: 11)),
                     const SizedBox(width: 8),
                     Text('${user.completedMissions} missions', style: const TextStyle(color: AppColors.grey, fontSize: 10)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.yellow.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.stars_rounded, size: 10, color: AppColors.yellow),
+                          const SizedBox(width: 2),
+                          Text('${user.points} pts', style: const TextStyle(color: AppColors.yellow, fontSize: 10, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
