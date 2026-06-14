@@ -43,7 +43,7 @@ minikube service recylpay-web-service
 
 Télécharge la dernière version de l'APK depuis GitHub Actions :
 
-👉 [**Télécharger RecycPay APK**](https://github.com/yannjordy/recylpay/releases/latest)
+👉 [**Télécharger la dernière version APK**](https://github.com/yannjordy/recylpay/releases/latest)
 
 Ou construis-la localement :
 

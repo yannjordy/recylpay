@@ -23,3 +23,15 @@ jobs:
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: RecycPay v${{ github.run_number }}
+          body: |
+            Build automatique #${{ github.run_number }}
+            Commit: ${{ github.sha }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: true
