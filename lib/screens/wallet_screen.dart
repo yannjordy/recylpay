@@ -176,9 +176,9 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _operatorCard('Orange Money', 'OM', const Color(0xFFFF7900), _selectedOperator == 'Orange Money')),
-              const SizedBox(width: 12),
-              Expanded(child: _operatorCard('MTN Mobile Money', 'MTN', const Color(0xFFFFC000), _selectedOperator == 'MTN Mobile Money')),
+            _operatorCard('Orange Money', 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Orange_Money_logo.svg/640px-Orange_Money_logo.svg.png', const Color(0xFFFF7900), _selectedOperator == 'Orange Money'),
+            const SizedBox(width: 12),
+            _operatorCard('MTN Mobile Money', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/MTN_Group_logo.svg/640px-MTN_Group_logo.svg.png', const Color(0xFFFFC000), _selectedOperator == 'MTN Mobile Money'),
             ],
           ),
           const SizedBox(height: 12),
@@ -246,7 +246,7 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _operatorCard(String name, String short, Color color, bool selected) {
+  Widget _operatorCard(String name, String logoUrl, Color color, bool selected) {
     return GestureDetector(
       onTap: () => setState(() => _selectedOperator = name),
       child: AnimatedContainer(
@@ -262,20 +262,28 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
         child: Column(
           children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  short,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                logoUrl,
+                width: 40, height: 40,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      name == 'Orange Money' ? 'OM' : 'MTN',
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
                 ),
               ),
