@@ -39,11 +39,19 @@ kubectl apply -f k8s/deployment.yaml
 minikube service recylpay-web-service
 ```
 
-## 📱 Build APK
+## 📱 Télécharger l'APK
+
+Télécharge la dernière version de l'APK depuis GitHub Actions :
+
+👉 [**Télécharger RecycPay APK**](https://github.com/yannjordy/recylpay/releases/latest)
+
+Ou construis-la localement :
 
 ```bash
 flutter build apk --release
 ```
+
+> L'APK est automatiquement buildée sur chaque push vers `main` via GitHub Actions.
 
 ## 🌐 Build Web
 
