@@ -1,17 +1,52 @@
-# mboacycle
+# RecycPay
 
-A new Flutter project.
+Application de gestion des déchets et recyclage au Cameroun.
 
-## Getting Started
+## 🚀 Déploiement
 
-This project is a starting point for a Flutter application.
+### Vercel (Frontend Web)
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+# Installer Vercel CLI
+npm install -g vercel
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+# Déployer
+vercel --prod
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Supabase (Backend)
+
+1. Crée un projet sur https://supabase.com
+2. Va dans l'éditeur SQL et colle le contenu de `supabase/schema.sql`
+3. Copie l'URL du projet et la clé anon dans `lib/services/supabase_service.dart`
+
+### Minikube (Kubernetes local)
+
+```bash
+# Démarrer Minikube
+minikube start
+
+# Builder l'image Docker
+docker build -t recylpay-web .
+
+# Charger dans Minikube
+minikube image load recylpay-web
+
+# Déployer
+kubectl apply -f k8s/deployment.yaml
+
+# Voir le service
+minikube service recylpay-web-service
+```
+
+## 📱 Build APK
+
+```bash
+flutter build apk --release
+```
+
+## 🌐 Build Web
+
+```bash
+flutter build web --no-tree-shake-icons
+```
