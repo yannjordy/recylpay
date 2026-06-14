@@ -55,7 +55,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_newPhoto != null) {
       data['photo_url'] = _newPhoto!.path;
     }
-    await auth.updateProfile(data);
+    await auth.updateProfile(
+      name: data['name'] as String?,
+      role: data['role'] as String?,
+      collectedTypes: data['collected_types'] != null ? List<String>.from(data['collected_types'] as List) : null,
+    );
     setState(() => _isSaving = false);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

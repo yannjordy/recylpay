@@ -1,11 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
-
   UserModel? _user;
   bool _isLoading = false;
   bool _isLoggedIn = false;
@@ -18,139 +18,147 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     MockData.seed();
-    _user = MockData.users.firstWhere((u) => u.id == 'user_self');
-    _isLoggedIn = true;
   }
 
   Future<void> checkLoginStatus() async {
-    _isLoggedIn = await _authService.isLoggedIn();
-    if (_isLoggedIn) {
-      try {
-        _user = await _authService.getProfile();
-      } catch (e) {
-        _isLoggedIn = false;
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('current_email');
+    if (email != null && email.isNotEmpty) {
+      final usersJson = prefs.getString('registered_users') ?? '{}';
+      final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+      if (users.containsKey(email)) {
+        final data = Map<String, dynamic>.from(users[email]);
+        _user = UserModel(
+          id: data['id'] as String,
+          phone: data['phone'] as String? ?? '+237690000000',
+          name: data['name'] as String? ?? email.split('@').first,
+          uniqueId: data['unique_id'] as String? ?? '@${email.split('@').first}',
+          role: data['role'] as String? ?? 'collecteur',
+          balance: (data['balance'] as num?)?.toDouble() ?? 25000,
+          rating: (data['rating'] as num?)?.toDouble() ?? 4.5,
+          completedMissions: (data['completed_missions'] as num?)?.toInt() ?? 0,
+          isOnline: true,
+          latitude: (data['latitude'] as num?)?.toDouble() ?? 4.0511,
+          longitude: (data['longitude'] as num?)?.toDouble() ?? 9.7679,
+          photoUrl: data['photo_url'] as String?,
+          collectedTypes: data['collected_types'] != null ? List<String>.from(data['collected_types']) : ['Tout'],
+        );
+        _isLoggedIn = true;
       }
     }
-    if (!_isLoggedIn && _user == null) {
-      _user = MockData.users.firstWhere((u) => u.id == 'user_self');
-      _isLoggedIn = true;
-    }
     notifyListeners();
   }
 
-  Future<void> sendOtp(String phone) async {
+  Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    try {
-      await _authService.sendOtp(phone);
-    } catch (e) {
-      _error = "Erreur d'envoi du code";
-    }
-    _isLoading = false;
-    notifyListeners();
-  }
 
-  Future<bool> verifyOtp(String phone, String otp) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      _user = await _authService.verifyOtp(phone, otp);
-      _isLoggedIn = true;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = 'Code invalide';
+    if (email.isEmpty || !email.contains('@')) {
+      _error = 'Email invalide';
       _isLoading = false;
       notifyListeners();
       return false;
     }
-  }
-
-  Future<UserModel?> register({
-    required String phone,
-    required String name,
-    required String role,
-    String? photoUrl,
-    List<String>? collectedTypes,
-    double? latitude,
-    double? longitude,
-  }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      _user = await _authService.register(
-        phone: phone,
-        name: name,
-        role: role,
-        photoUrl: photoUrl,
-        collectedTypes: collectedTypes,
-        latitude: latitude,
-        longitude: longitude,
-      );
-      _isLoggedIn = true;
+    if (password.isEmpty || password.length < 3) {
+      _error = 'Mot de passe trop court (min 3 caractères)';
       _isLoading = false;
       notifyListeners();
-      return _user;
-    } catch (e) {
-      _error = "Erreur d'inscription";
-      _isLoading = false;
-      notifyListeners();
-      return null;
+      return false;
     }
-  }
 
-  Future<void> updateLocation(double lat, double lng) async {
-    try {
-      await _authService.updateLocation(lat, lng);
-    } catch (_) {}
-  }
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString('registered_users') ?? '{}';
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
 
-  Future<void> switchRole(String role) async {
-    try {
-      await _authService.switchRole(role);
-      _user = _authService.currentUser;
-      notifyListeners();
-    } catch (_) {
-      if (_user != null) {
-        _user = _user!.copyWith(role: role);
+    if (users.containsKey(email)) {
+      final data = Map<String, dynamic>.from(users[email]);
+      if (data['password'] != password) {
+        _error = 'Mot de passe incorrect';
+        _isLoading = false;
         notifyListeners();
+        return false;
       }
+      _user = _userFromMap(email, data);
+    } else {
+      // Nouvel utilisateur
+      final newUser = {
+        'id': const Uuid().v4(),
+        'email': email,
+        'password': password,
+        'name': email.split('@').first,
+        'phone': '+237690000000',
+        'unique_id': '@${email.split('@').first}',
+        'role': 'collecteur',
+        'balance': 25000,
+        'rating': 4.5,
+        'completed_missions': 0,
+        'latitude': 4.0511,
+        'longitude': 9.7679,
+        'collected_types': ['Tout'],
+      };
+      users[email] = newUser;
+      await prefs.setString('registered_users', jsonEncode(users));
+      _user = _userFromMap(email, newUser);
     }
+
+    await prefs.setString('current_email', email);
+    _isLoggedIn = true;
+    _isLoading = false;
+    notifyListeners();
+    return true;
   }
 
-  Future<void> updateProfile(Map<String, dynamic> data) async {
-    try {
-      await _authService.updateProfile(data);
-      _user = _authService.currentUser;
-    } catch (e) {
-      if (_user != null) {
-        _user = _user!.copyWith(
-          name: data['name'] as String? ?? _user!.name,
-          role: data['role'] as String? ?? _user!.role,
-          collectedTypes: data['collected_types'] != null
-              ? List<String>.from(data['collected_types'] as List)
-              : _user!.collectedTypes,
-        );
-      }
-      _error = 'Erreur de mise à jour';
-    }
+  Future<void> updateProfile({
+    String? name,
+    String? role,
+    List<String>? collectedTypes,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('current_email');
+    if (email == null) return;
+    final usersJson = prefs.getString('registered_users') ?? '{}';
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+    if (!users.containsKey(email)) return;
+    final data = Map<String, dynamic>.from(users[email]);
+    if (name != null) data['name'] = name;
+    if (role != null) data['role'] = role;
+    if (collectedTypes != null) data['collected_types'] = collectedTypes;
+    users[email] = data;
+    await prefs.setString('registered_users', jsonEncode(users));
+    _user = _userFromMap(email, data);
     notifyListeners();
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('current_email');
+    _user = null;
+    _isLoggedIn = false;
+    notifyListeners();
+  }
+
+  UserModel _userFromMap(String email, Map<String, dynamic> data) {
+    return UserModel(
+      id: data['id'] as String,
+      phone: data['phone'] as String? ?? '+237690000000',
+      name: data['name'] as String? ?? email.split('@').first,
+      uniqueId: data['unique_id'] as String? ?? '@${email.split('@').first}',
+      role: data['role'] as String? ?? 'collecteur',
+      balance: (data['balance'] as num?)?.toDouble() ?? 25000,
+      rating: (data['rating'] as num?)?.toDouble() ?? 4.5,
+      completedMissions: (data['completed_missions'] as num?)?.toInt() ?? 0,
+      isOnline: true,
+      latitude: (data['latitude'] as num?)?.toDouble() ?? 4.0511,
+      longitude: (data['longitude'] as num?)?.toDouble() ?? 9.7679,
+      photoUrl: data['photo_url'] as String?,
+      collectedTypes: data['collected_types'] != null ? List<String>.from(data['collected_types']) : ['Tout'],
+    );
   }
 
   void setMockUser(UserModel user) {
     _user = user;
     _isLoggedIn = true;
-    notifyListeners();
-  }
-
-  Future<void> logout() async {
-    await _authService.logout();
-    _user = null;
-    _isLoggedIn = false;
     notifyListeners();
   }
 }
