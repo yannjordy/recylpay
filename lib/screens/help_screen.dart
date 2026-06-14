@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -13,7 +14,7 @@ class HelpScreen extends StatelessWidget {
         title: const Text('Aide & Support', style: TextStyle(color: Colors.white)),
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
       ),
-      body: const SingleChildScrollView(
+      body: DesktopScaffold(child: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +32,7 @@ class HelpScreen extends StatelessWidget {
             Text('Email: support@recylpay.com\nTél: +237 670 000 000', style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5)),
           ],
         ),
-      ),
+      )),
     );
   }
 }

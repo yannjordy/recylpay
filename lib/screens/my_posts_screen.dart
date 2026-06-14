@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class MyPostsScreen extends StatelessWidget {
   const MyPostsScreen({super.key});
@@ -23,7 +24,7 @@ class MyPostsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: myPosts.isEmpty
+      body: DesktopScaffold(child: myPosts.isEmpty
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -83,7 +84,7 @@ class MyPostsScreen extends StatelessWidget {
                   ),
                 );
               },
-            ),
+            )),
     );
   }
 }

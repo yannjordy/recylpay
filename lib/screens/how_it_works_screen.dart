@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class HowItWorksScreen extends StatelessWidget {
   const HowItWorksScreen({super.key});
@@ -13,7 +14,7 @@ class HowItWorksScreen extends StatelessWidget {
         title: const Text('Comment ça marche', style: TextStyle(color: Colors.white)),
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
       ),
-      body: SingleChildScrollView(
+      body: DesktopScaffold(child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +32,7 @@ class HowItWorksScreen extends StatelessWidget {
             _infoCard(Icons.wallet_rounded, '6. Gagne de l\'argent', 'Les points éco sont convertis en crédits dans ton portefeuille. Retire via Mobile Money !', AppColors.green),
           ],
         ),
-      ),
+      )),
     );
   }
 

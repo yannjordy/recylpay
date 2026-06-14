@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/chat_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/extensions.dart';
+import '../utils/responsive.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -30,7 +31,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: convs.isEmpty
+      body: DesktopScaffold(child: convs.isEmpty
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -118,7 +119,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ),
                 );
               },
-            ),
+            )),
     );
   }
 }

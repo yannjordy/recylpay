@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/pill_button.dart';
+import '../utils/responsive.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -81,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: DesktopScaffold(child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +193,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 

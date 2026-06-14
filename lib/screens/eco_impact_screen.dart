@@ -3,6 +3,7 @@ import '../services/eco_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/stat_card.dart';
+import '../utils/responsive.dart';
 
 class EcoImpactScreen extends StatelessWidget {
   const EcoImpactScreen({super.key});
@@ -18,7 +19,7 @@ class EcoImpactScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: DesktopScaffold(child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +53,7 @@ class EcoImpactScreen extends StatelessWidget {
             _buildGlobalRank(context, eco),
           ],
         ),
-      ),
+      )),
     );
   }
 

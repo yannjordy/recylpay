@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/extensions.dart';
+import '../utils/responsive.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -40,7 +41,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: notifs.isEmpty
+      body: DesktopScaffold(child: notifs.isEmpty
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -119,7 +120,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 );
               },
-            ),
+            )),
     );
   }
 }

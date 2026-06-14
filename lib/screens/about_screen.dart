@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -13,7 +14,7 @@ class AboutScreen extends StatelessWidget {
         title: const Text('À propos', style: TextStyle(color: Colors.white)),
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
       ),
-      body: Center(
+      body: DesktopScaffold(child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
@@ -38,7 +39,7 @@ class AboutScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

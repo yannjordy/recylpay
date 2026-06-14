@@ -28,6 +28,7 @@ import 'screens/landing_page.dart';
 import 'theme/app_theme.dart';
 import 'widgets/glass_bottom_nav.dart';
 import 'widgets/app_drawer.dart';
+import 'utils/responsive.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,6 +108,14 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
     WalletScreen(),
   ];
 
+  static const _navItems = [
+    (Icons.store_rounded, 'Marché'),
+    (Icons.map_rounded, 'Carte'),
+    (Icons.add_circle_rounded, 'Publier'),
+    (Icons.dynamic_feed_rounded, 'Feed'),
+    (Icons.wallet_rounded, 'Wallet'),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -142,6 +151,15 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Responsive.isDesktop(context);
+    return Responsive(
+      mobile: _buildMobileLayout(),
+      tablet: _buildMobileLayout(),
+      desktop: _buildDesktopLayout(),
+    );
+  }
+
+  Widget _buildMobileLayout() {
     return Stack(
       children: [
         Scaffold(
@@ -153,60 +171,129 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
               opacity: _contentOpacity.value,
               child: child,
             ),
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _screens,
-            ),
+            child: IndexedStack(index: _currentIndex, children: _screens),
           ),
           bottomNavigationBar: GlassBottomNav(
             currentIndex: _currentIndex,
             onTap: (i) => setState(() => _currentIndex = i),
           ),
         ),
-        if (_showSplash)
-          FadeTransition(
-            opacity: _logoOpacity,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: const Color(0xFF0A0E21),
-              child: Center(
-                child: ScaleTransition(
-                  scale: _logoScale,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: 120,
-                        height: 120,
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'RecycPay',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 2,
+        if (_showSplash) _splashOverlay(),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Stack(
+      children: [
+        Scaffold(
+          key: _scaffoldKey,
+          drawer: const AppDrawer(),
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Side navigation rail
+              Container(
+                width: 72,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.softBlack.withValues(alpha: 0.95),
+                  border: Border(
+                    right: BorderSide(color: AppColors.glassBorder, width: 0.5),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_navItems.length, (i) {
+                    final item = _navItems[i];
+                    final isSelected = i == _currentIndex;
+                    return GestureDetector(
+                      onTap: () => setState(() => _currentIndex = i),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.green.withValues(alpha: 0.15) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Tooltip(
+                          message: item.$2,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(item.$1,
+                                  color: isSelected ? AppColors.green : AppColors.grey, size: 24),
+                              const SizedBox(height: 4),
+                              Text(item.$2,
+                                  style: TextStyle(
+                                      color: isSelected ? AppColors.green : AppColors.grey,
+                                      fontSize: 9,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Recycler, Gagner, Avancer',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.7),
-                          letterSpacing: 1,
-                        ),
+                    );
+                  }),
+                ),
+              ),
+              // Main content
+              Expanded(
+                child: Center(
+                  child: Container(
+                    width: 1100,
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: AnimatedBuilder(
+                      animation: _contentOpacity,
+                      builder: (context, child) => Opacity(
+                        opacity: _contentOpacity.value,
+                        child: child,
                       ),
-                    ],
+                      child: IndexedStack(index: _currentIndex, children: _screens),
+                    ),
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+        if (_showSplash) _splashOverlay(),
+      ],
+    );
+  }
+
+  Widget _splashOverlay() {
+    return FadeTransition(
+      opacity: _logoOpacity,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: const Color(0xFF0A0E21),
+        child: Center(
+          child: ScaleTransition(
+            scale: _logoScale,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/images/logo.png', width: 120, height: 120),
+                const SizedBox(height: 24),
+                const Text('RecycPay',
+                    style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2)),
+                const SizedBox(height: 8),
+                Text('Recycler, Gagner, Avancer',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.7),
+                        letterSpacing: 1)),
+              ],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
