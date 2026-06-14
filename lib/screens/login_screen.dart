@@ -25,14 +25,14 @@ class _LoginScreenState extends State<LoginScreen> {
   ];
 
   final _profilePhotos = [
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1509967419530-38fb5b11f3e6?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1524502395857-c4e3c0e28a6c?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1531424576566-0cb6d0a300a2?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1540575465829-2b9e4be5bede?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1552058540-d7c2a2cb01de?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1567532936618-e3266af2e67f?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1769636929354-59165ba73c7e?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1743871698163-a2e470d8eac7?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1743866356139-579e0df74e55?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1710117045399-0fab00350f4d?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1766107349536-c6de9ab38dcd?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1770396528756-d463cc7f0a8a?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1745690720220-24e337e571c7?auto=format&fit=crop&w=200&h=200&q=60',
+    'https://images.unsplash.com/photo-1759300063434-482e4d65f9bf?auto=format&fit=crop&w=200&h=200&q=60',
   ];
 
   @override
