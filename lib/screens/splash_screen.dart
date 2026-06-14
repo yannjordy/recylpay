@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
@@ -14,15 +15,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      final auth = context.read<AuthProvider>();
-      if (auth.isLoggedIn && auth.user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
+    _check();
+  }
+
+  Future<void> _check() async {
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    final auth = context.read<AuthProvider>();
+    if (auth.isLoggedIn && auth.user != null) {
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool('landing_seen') ?? false;
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, seen ? '/login' : '/landing');
+    }
   }
 
   @override
