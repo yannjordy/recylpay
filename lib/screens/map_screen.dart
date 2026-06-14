@@ -1,5 +1,5 @@
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -546,7 +546,8 @@ class _MapScreenState extends State<MapScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       final url = 'https://www.google.com/maps/dir/?api=1&destination=${c.latitude},${c.longitude}';
-                      html.window.open(url, '_blank');
+                      Clipboard.setData(ClipboardData(text: url));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lien Google Maps copié! Colle-le dans ton navigateur'), backgroundColor: AppColors.green, duration: Duration(seconds: 2)));
                     },
                     icon: const Icon(Icons.directions_rounded, size: 16),
                     label: const Text('Itinéraire', style: TextStyle(fontSize: 12)),

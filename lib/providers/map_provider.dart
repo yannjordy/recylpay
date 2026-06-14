@@ -1,4 +1,3 @@
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/pollution_report_model.dart';
@@ -49,14 +48,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   Future<void> getCurrentLocation() async {
-    try {
-      final pos = await html.window.navigator.geolocation!.getCurrentPosition();
-      final lat = (pos.coords?.latitude ?? 4.0511) as double;
-      final lng = (pos.coords?.longitude ?? 9.7679) as double;
-      _currentPosition = LatLng(lat, lng);
-    } catch (_) {
-      _currentPosition ??= const LatLng(4.0511, 9.7679);
-    }
+    _currentPosition ??= const LatLng(4.0511, 9.7679);
     notifyListeners();
   }
 
