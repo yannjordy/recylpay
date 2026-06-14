@@ -259,39 +259,29 @@ class AuthProvider extends ChangeNotifier {
     final users = Map<String, dynamic>.from(jsonDecode(usersJson));
 
     int pointsGained;
-    double amountPaid;
     switch (taskType) {
       case 'tri':
         pointsGained = 3;
-        amountPaid = 500;
       case 'ramassage':
         pointsGained = 5;
-        amountPaid = 1000;
       case 'livraison':
         pointsGained = 4;
-        amountPaid = 800;
       default:
         pointsGained = 2;
-        amountPaid = 300;
     }
 
-    // Update current user: add points, deduct balance
+    // Update current user: add points
     final myData = Map<String, dynamic>.from(users[email]);
     myData['points'] = ((myData['points'] as num?)?.toInt() ?? 5) + pointsGained;
     myData['completed_missions'] = ((myData['completed_missions'] as num?)?.toInt() ?? 0) + 1;
-    myData['balance'] = ((myData['balance'] as num?)?.toDouble() ?? 0) + amountPaid;
     users[email] = myData;
 
-    // Update other user: deduct balance
+    // Update other user: add points too
     if (users.containsKey(otherUserEmail)) {
       final otherData = Map<String, dynamic>.from(users[otherUserEmail]);
-      final otherBalance = (otherData['balance'] as num?)?.toDouble() ?? 0;
-      if (otherBalance >= amountPaid) {
-        otherData['balance'] = otherBalance - amountPaid;
-        otherData['completed_missions'] = ((otherData['completed_missions'] as num?)?.toInt() ?? 0) + 1;
-        otherData['points'] = ((otherData['points'] as num?)?.toInt() ?? 5) + pointsGained;
-        users[otherUserEmail] = otherData;
-      }
+      otherData['completed_missions'] = ((otherData['completed_missions'] as num?)?.toInt() ?? 0) + 1;
+      otherData['points'] = ((otherData['points'] as num?)?.toInt() ?? 5) + pointsGained;
+      users[otherUserEmail] = otherData;
     }
 
     await prefs.setString('registered_users', jsonEncode(users));
