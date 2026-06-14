@@ -1,13 +1,14 @@
 {
-    "name": "RecycPay",
+    "name": "RecycPay - Recycler, Gagner, Avancer",
     "short_name": "RecycPay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "RecycPay - Gestion des déchets et recyclage au Cameroun",
+    "background_color": "#1C1C1E",
+    "theme_color": "#2ECC71",
+    "description": "Plateforme de gestion et valorisation des déchets au Cameroun. Collectez, triez et recyclez tout en gagnant de l'argent.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["environment", "finance", "utilities"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +31,15 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/market.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Marché des matériaux recyclables"
         }
     ]
 }
