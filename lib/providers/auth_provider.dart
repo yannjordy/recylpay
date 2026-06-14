@@ -24,7 +24,7 @@ class AuthProvider extends ChangeNotifier {
     MockData.seed();
   }
 
-  double get totalReferralEarnings => _referralCount * 500;
+  double get totalReferralEarnings => _referralCount * 5;
 
   Future<void> checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -139,8 +139,8 @@ class AuthProvider extends ChangeNotifier {
     final refData = Map<String, dynamic>.from(users[referrerKey!]);
     final currentBalance = (refData['balance'] as num?)?.toDouble() ?? 0;
     final currentEarnings = (refData['referral_earnings'] as num?)?.toDouble() ?? 0;
-    refData['balance'] = currentBalance + 500;
-    refData['referral_earnings'] = currentEarnings + 500;
+    refData['balance'] = currentBalance + 5;
+    refData['referral_earnings'] = currentEarnings + 5;
     users[referrerKey] = refData;
 
     // Mark new user as referred

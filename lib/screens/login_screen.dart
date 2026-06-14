@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Text('Si tu as un code, entre-le pour que ton parrain gagne 500 FCFA',
+                        const Text('Si tu as un code, entre-le pour que ton parrain gagne 5 points',
                             style: TextStyle(color: AppColors.grey, fontSize: 11)),
                         const SizedBox(height: 8),
                         TextField(

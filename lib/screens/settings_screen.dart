@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -185,6 +186,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }).toList(),
             ),
             const SizedBox(height: 32),
+            // Referral code display
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.green.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.green.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.card_giftcard_rounded, color: AppColors.green, size: 20),
+                      const SizedBox(width: 8),
+                      const Text('Code parrainage', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () {
+                      if (user?.referralCode != null) {
+                        Clipboard.setData(ClipboardData(text: user!.referralCode!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Code copié !'), backgroundColor: AppColors.green, duration: Duration(seconds: 2)),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.dark,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(user?.referralCode ?? '------',
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 3)),
+                          const SizedBox(width: 10),
+                          const Icon(Icons.copy_rounded, color: AppColors.green, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('Partage ce code avec tes amis. Tu gagnes 5 points par inscription.',
+                      style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             PillButton(
               width: double.infinity,
               label: 'Enregistrer',
