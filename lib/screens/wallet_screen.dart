@@ -20,6 +20,7 @@ class _WalletScreenState extends State<WalletScreen> {
   final _phoneController = TextEditingController(text: '+237');
   final _scrollController = ScrollController();
   final _historyKey = GlobalKey();
+  String? _selectedOperator;
 
   @override
   void initState() {
@@ -171,48 +172,126 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 4),
           const Text('Commission de 2% appliquée sur chaque dépôt.', style: TextStyle(color: AppColors.grey, fontSize: 12)),
           const SizedBox(height: 16),
-          TextField(
-            controller: _depositController,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Montant à déposer',
-              labelStyle: TextStyle(color: AppColors.grey),
-              suffixText: 'FCFA',
-              suffixStyle: TextStyle(color: AppColors.green),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.glassBorder)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.green)),
-            ),
-          ),
-          const SizedBox(height: 12),
+          const Text('Opérateur', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+          const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: PillButton(label: 'Annuler', color: AppColors.softBlack, onTap: () {
-                setState(() { _showDeposit = false; _depositController.clear(); });
-              })),
+              Expanded(child: _operatorCard('Orange Money', 'OM', const Color(0xFFFF7900), _selectedOperator == 'Orange Money')),
               const SizedBox(width: 12),
-              Expanded(child: PillButton(label: 'Déposer', onTap: () async {
-                final a = double.tryParse(_depositController.text);
-                if (a == null || a <= 0) return;
-                final ok = await wallet.deposit(a);
-                if (ok && mounted) {
-                  _depositController.clear();
-                  setState(() => _showDeposit = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${a.toInt()} FCFA déposés! (commission: ${(a * 0.02).toInt()} FCFA)'),
-                      backgroundColor: AppColors.green,
-                    ),
-                  );
-                }
-              })),
+              Expanded(child: _operatorCard('MTN Mobile Money', 'MTN', const Color(0xFFFFC000), _selectedOperator == 'MTN Mobile Money')),
             ],
           ),
+          const SizedBox(height: 12),
+          if (_selectedOperator != null) ...[
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Numéro de téléphone',
+                labelStyle: TextStyle(color: AppColors.grey),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.glassBorder)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.green)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _depositController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Montant à déposer',
+                labelStyle: TextStyle(color: AppColors.grey),
+                suffixText: 'FCFA',
+                suffixStyle: TextStyle(color: AppColors.green),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.glassBorder)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.green)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: PillButton(label: 'Annuler', color: AppColors.softBlack, onTap: () {
+                  setState(() { _showDeposit = false; _depositController.clear(); _selectedOperator = null; });
+                })),
+                const SizedBox(width: 12),
+                Expanded(child: PillButton(label: 'Déposer', onTap: () async {
+                  final op = _selectedOperator;
+                  if (op == null) return;
+                  final p = _phoneController.text.trim();
+                  if (p.length < 9) return;
+                  final a = double.tryParse(_depositController.text);
+                  if (a == null || a <= 0) return;
+                  final ok = await wallet.deposit(a);
+                  if (ok && mounted) {
+                    _depositController.clear();
+                    setState(() { _showDeposit = false; _selectedOperator = null; });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$a FCFA déposés via $op! (commission: ${(a * 0.02).toInt()} FCFA)'),
+                        backgroundColor: AppColors.green,
+                      ),
+                    );
+                  }
+                })),
+              ],
+            ),
+          ],
           if (wallet.error != null) ...[
             const SizedBox(height: 8),
             Text(wallet.error!, style: const TextStyle(color: AppColors.red)),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _operatorCard(String name, String short, Color color, bool selected) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedOperator = name),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.15) : AppColors.dark,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? color : AppColors.glassBorder,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  short,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              style: TextStyle(
+                color: selected ? color : AppColors.grey,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
