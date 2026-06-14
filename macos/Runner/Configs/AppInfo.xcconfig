@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = mboacycle
+PRODUCT_NAME = recylpay
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.mboacycle.mboacycle
+PRODUCT_BUNDLE_IDENTIFIER = com.recylpay.recylpay
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.mboacycle. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.recylpay. All rights reserved.

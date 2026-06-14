@@ -28,7 +28,7 @@ class HelpScreen extends StatelessWidget {
             SizedBox(height: 24),
             Text('Contact', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
-            Text('Email: support@mboacycle.com\nTél: +237 670 000 000', style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5)),
+            Text('Email: support@recylpay.com\nTél: +237 670 000 000', style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5)),
           ],
         ),
       ),
