@@ -25,6 +25,7 @@ import 'screens/privacy_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/landing_page.dart';
+import 'screens/referral_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/glass_bottom_nav.dart';
 import 'widgets/app_drawer.dart';
@@ -67,6 +68,7 @@ class RecycPayApp extends StatelessWidget {
         routes: {
           '/login': (_) => const LoginScreen(),
           '/landing': (_) => const LandingPage(),
+          '/referral': (_) => const ReferralScreen(),
           '/home': (_) => const MainShell(),
           '/settings': (_) => const SettingsScreen(),
           '/eco-impact': (_) => const EcoImpactScreen(),

@@ -38,6 +38,10 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/eco-impact');
                   }),
+                  _drawerItem(Icons.card_giftcard_rounded, 'Parrainage', () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/referral');
+                  }),
                   _drawerItem(Icons.message_rounded, 'Messages', () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/messages');

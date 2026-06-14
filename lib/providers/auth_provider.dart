@@ -10,15 +10,21 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoggedIn = false;
   String? _error;
+  int _referralCount = 0;
+  List<String> _referredUsers = [];
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
   String? get error => _error;
+  int get referralCount => _referralCount;
+  List<String> get referredUsers => _referredUsers;
 
   AuthProvider() {
     MockData.seed();
   }
+
+  double get totalReferralEarnings => _referralCount * 500;
 
   Future<void> checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -28,28 +34,21 @@ class AuthProvider extends ChangeNotifier {
       final users = Map<String, dynamic>.from(jsonDecode(usersJson));
       if (users.containsKey(email)) {
         final data = Map<String, dynamic>.from(users[email]);
-        _user = UserModel(
-          id: data['id'] as String,
-          phone: data['phone'] as String? ?? '+237690000000',
-          name: data['name'] as String? ?? email.split('@').first,
-          uniqueId: data['unique_id'] as String? ?? '@${email.split('@').first}',
-          role: data['role'] as String? ?? 'collecteur',
-          balance: (data['balance'] as num?)?.toDouble() ?? 25000,
-          rating: (data['rating'] as num?)?.toDouble() ?? 4.5,
-          completedMissions: (data['completed_missions'] as num?)?.toInt() ?? 0,
-          isOnline: true,
-          latitude: (data['latitude'] as num?)?.toDouble() ?? 4.0511,
-          longitude: (data['longitude'] as num?)?.toDouble() ?? 9.7679,
-          photoUrl: data['photo_url'] as String?,
-          collectedTypes: data['collected_types'] != null ? List<String>.from(data['collected_types']) : ['Tout'],
-        );
+        _user = _userFromMap(email, data);
+        _loadReferralStats(email);
         _isLoggedIn = true;
       }
     }
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password, {String? name, String? role, String? photoUrl}) async {
+  Future<bool> login(
+    String email, String password, {
+    String? name,
+    String? role,
+    String? photoUrl,
+    String? referralCode,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -80,10 +79,12 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
       _user = _userFromMap(email, data);
+      _loadReferralStats(email);
     } else {
-      // Nouvel utilisateur
+      final id = const Uuid().v4();
+      final generated = UserModel.generateReferralCode(name ?? email.split('@').first);
       final newUser = {
-        'id': const Uuid().v4(),
+        'id': id,
         'email': email,
         'password': password,
         'name': name ?? email.split('@').first,
@@ -97,10 +98,19 @@ class AuthProvider extends ChangeNotifier {
         'longitude': 9.7679,
         'photo_url': photoUrl,
         'collected_types': ['Tout'],
+        'referral_code': generated,
+        'referred_by': null,
+        'referral_earnings': 0,
       };
       users[email] = newUser;
       await prefs.setString('registered_users', jsonEncode(users));
       _user = _userFromMap(email, newUser);
+      _loadReferralStats(email);
+
+      // Handle referral bonus
+      if (referralCode != null && referralCode.trim().isNotEmpty) {
+        await _applyReferralBonus(referralCode.trim().toUpperCase(), email, prefs, users);
+      }
     }
 
     await prefs.setString('current_email', email);
@@ -110,10 +120,63 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
+  Future<void> _applyReferralBonus(
+    String code, String newUserEmail, SharedPreferences prefs, Map<String, dynamic> users,
+  ) async {
+    String? referrerEmail;
+    String? referrerKey;
+    for (final entry in users.entries) {
+      final data = Map<String, dynamic>.from(entry.value);
+      if (data['referral_code'] == code) {
+        referrerEmail = entry.key;
+        referrerKey = entry.key;
+        break;
+      }
+    }
+    if (referrerEmail == null) return;
+
+    // Add bonus to referrer
+    final refData = Map<String, dynamic>.from(users[referrerKey!]);
+    final currentBalance = (refData['balance'] as num?)?.toDouble() ?? 0;
+    final currentEarnings = (refData['referral_earnings'] as num?)?.toDouble() ?? 0;
+    refData['balance'] = currentBalance + 500;
+    refData['referral_earnings'] = currentEarnings + 500;
+    users[referrerKey] = refData;
+
+    // Mark new user as referred
+    final newData = Map<String, dynamic>.from(users[newUserEmail]);
+    newData['referred_by'] = referrerEmail;
+    users[newUserEmail] = newData;
+
+    // Track referred users
+    final referralList = prefs.getString('referred_by_$referrerKey') ?? '[]';
+    final list = List<String>.from(jsonDecode(referralList));
+    list.add(newUserEmail);
+    await prefs.setString('referred_by_$referrerKey', jsonEncode(list));
+
+    await prefs.setString('registered_users', jsonEncode(users));
+
+    // Refresh current user if they are the referrer
+    if (_user?.email == referrerEmail) {
+      _user = _userFromMap(referrerEmail, refData);
+      _loadReferralStats(referrerEmail);
+    }
+  }
+
+  void _loadReferralStats(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final referralList = prefs.getString('referred_by_$email');
+    if (referralList != null) {
+      _referredUsers = List<String>.from(jsonDecode(referralList));
+      _referralCount = _referredUsers.length;
+    }
+  }
+
   Future<void> updateProfile({
     String? name,
     String? role,
     List<String>? collectedTypes,
+    String? photoUrl,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('current_email');
@@ -125,6 +188,7 @@ class AuthProvider extends ChangeNotifier {
     if (name != null) data['name'] = name;
     if (role != null) data['role'] = role;
     if (collectedTypes != null) data['collected_types'] = collectedTypes;
+    if (photoUrl != null) data['photo_url'] = photoUrl;
     users[email] = data;
     await prefs.setString('registered_users', jsonEncode(users));
     _user = _userFromMap(email, data);
@@ -137,6 +201,8 @@ class AuthProvider extends ChangeNotifier {
     await prefs.remove('landing_seen');
     _user = null;
     _isLoggedIn = false;
+    _referralCount = 0;
+    _referredUsers = [];
     notifyListeners();
   }
 
@@ -155,7 +221,15 @@ class AuthProvider extends ChangeNotifier {
       longitude: (data['longitude'] as num?)?.toDouble() ?? 9.7679,
       photoUrl: data['photo_url'] as String?,
       collectedTypes: data['collected_types'] != null ? List<String>.from(data['collected_types']) : ['Tout'],
+      referralCode: data['referral_code'] as String?,
+      referredBy: data['referred_by'] as String?,
+      referralEarnings: (data['referral_earnings'] as num?)?.toDouble() ?? 0,
     );
+  }
+
+  String get referralLink {
+    if (_user?.referralCode == null) return '';
+    return 'https://recylpay.com/parrainage?code=${_user!.referralCode}';
   }
 
   void setMockUser(UserModel user) {

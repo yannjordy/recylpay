@@ -14,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
+  final _referralCtrl = TextEditingController();
   bool _obscure = true;
   String _selectedRole = 'trieur';
   String? _selectedPhoto;
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _nameCtrl.dispose();
+    _referralCtrl.dispose();
     super.dispose();
   }
 
@@ -51,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       name: _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : null,
       role: _selectedRole,
       photoUrl: _selectedPhoto,
+      referralCode: _referralCtrl.text.trim().isNotEmpty ? _referralCtrl.text.trim() : null,
     );
     if (ok && mounted) {
       Navigator.pushReplacementNamed(context, '/home');
@@ -201,6 +204,43 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppColors.grey),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.green.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.green.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.people_alt_rounded, size: 16, color: AppColors.green),
+                            const SizedBox(width: 8),
+                            const Text('Code parrain (optionnel)',
+                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text('Si tu as un code, entre-le pour que ton parrain gagne 500 FCFA',
+                            style: TextStyle(color: AppColors.grey, fontSize: 11)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _referralCtrl,
+                          textCapitalization: TextCapitalization.characters,
+                          decoration: const InputDecoration(
+                            hintText: 'Ex: JOH123',
+                            hintStyle: TextStyle(fontSize: 13),
+                            prefixIcon: Icon(Icons.card_giftcard_rounded, color: AppColors.grey, size: 20),
+                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
