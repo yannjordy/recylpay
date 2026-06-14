@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recylpay-config
+data:
+  db_host: "postgres-service"
+  db_port: "5432"
+  db_name: "recylpay"
+  cors_origin: "*"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: recylpay-secret
+type: Opaque
+stringData:
+  db_user: "postgres"
+  db_password: "change-me-in-production"
+  jwt_secret: "change-me-to-a-long-random-string"
