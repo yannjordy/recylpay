@@ -69,7 +69,7 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     await auth.logout();
                     if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.pushReplacementNamed(context, '/landing');
                     }
                   }, color: AppColors.red),
                 ],

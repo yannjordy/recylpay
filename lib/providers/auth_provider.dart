@@ -49,7 +49,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {String? name, String? role, String? photoUrl}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -86,15 +86,16 @@ class AuthProvider extends ChangeNotifier {
         'id': const Uuid().v4(),
         'email': email,
         'password': password,
-        'name': email.split('@').first,
+        'name': name ?? email.split('@').first,
         'phone': '+237690000000',
-        'unique_id': '@${email.split('@').first}',
-        'role': 'collecteur',
+        'unique_id': '@${(name ?? email.split('@').first).toLowerCase().replaceAll(' ', '_')}',
+        'role': role ?? 'trieur',
         'balance': 25000,
         'rating': 4.5,
         'completed_missions': 0,
         'latitude': 4.0511,
         'longitude': 9.7679,
+        'photo_url': photoUrl,
         'collected_types': ['Tout'],
       };
       users[email] = newUser;
@@ -133,6 +134,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('current_email');
+    await prefs.remove('landing_seen');
     _user = null;
     _isLoggedIn = false;
     notifyListeners();

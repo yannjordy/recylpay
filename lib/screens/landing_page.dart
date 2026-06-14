@@ -21,23 +21,30 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
 
   final _pages = [
     _LandingPageData(
-      image: 'assets/images/africa.jpg',
+      image: 'assets/images/cameroun.jpg',
       title: 'Bienvenue sur RecycPay',
       subtitle: 'La plateforme camerounaise de gestion des déchets et de recyclage',
       icon: Icons.public_rounded,
       color: AppColors.green,
     ),
     _LandingPageData(
-      image: 'assets/images/pollution.jpg',
+      image: 'assets/images/decharge.jpg',
       title: 'Le Problème',
-      subtitle: 'Des dépotoirs sauvages, des caniveaux bouchés, des décharges à ciel ouvert. Notre environnement souffre.',
+      subtitle: 'Des dépotoirs sauvages, des caniveaux bouchés, des décharges à ciel ouvert. Notre environnement souffre. 🌍',
       icon: Icons.warning_amber_rounded,
       color: AppColors.red,
     ),
     _LandingPageData(
-      image: 'assets/images/recycling.jpg',
+      image: 'assets/images/pollution.jpg',
+      title: 'La Pollution au Cameroun',
+      subtitle: 'Sac plastique, déchets ménagers, eaux usées. Les villes camerounaises étouffent sous les déchets.',
+      icon: Icons.eco_rounded,
+      color: AppColors.orange,
+    ),
+    _LandingPageData(
+      image: 'assets/images/tri.jpg',
       title: 'Notre Mission',
-      subtitle: 'Collecter, trier et recycler les déchets. Chaque geste compte pour un Cameroun plus propre.',
+      subtitle: 'Collecter, trier et recycler les déchets. Chaque geste compte pour un Cameroun plus propre et plus vert.',
       icon: Icons.recycling_rounded,
       color: AppColors.green,
     ),
@@ -49,7 +56,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
       color: AppColors.blue,
     ),
     _LandingPageData(
-      image: 'assets/images/recycling.jpg',
+      image: 'assets/images/recyclage.jpg',
       title: 'Comment ça marche ?',
       subtitle: '1. Collecte tes déchets recyclables\n2. Vends-les aux entreprises partenaires\n3. Reçois ton paiement sur Mobile Money',
       icon: Icons.timeline_rounded,

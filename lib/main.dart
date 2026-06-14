@@ -90,9 +90,14 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late final AnimationController _splashCtrl;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _contentOpacity;
+  bool _showSplash = true;
 
   final _screens = const [
     MarketScreen(),
@@ -106,6 +111,26 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _initProviders();
+    _splashCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
+    _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _splashCtrl, curve: const Interval(0.0, 0.5, curve: Curves.elasticOut)),
+    );
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _splashCtrl, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)),
+    );
+    _contentOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _splashCtrl, curve: const Interval(0.7, 1.0, curve: Curves.easeIn)),
+    );
+    _splashCtrl.forward();
+    Future.delayed(const Duration(milliseconds: 2200), () {
+      if (mounted) setState(() => _showSplash = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _splashCtrl.dispose();
+    super.dispose();
   }
 
   void _initProviders() {
@@ -117,17 +142,71 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: const AppDrawer(),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: GlassBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          key: _scaffoldKey,
+          drawer: const AppDrawer(),
+          body: AnimatedBuilder(
+            animation: _contentOpacity,
+            builder: (context, child) => Opacity(
+              opacity: _contentOpacity.value,
+              child: child,
+            ),
+            child: IndexedStack(
+              index: _currentIndex,
+              children: _screens,
+            ),
+          ),
+          bottomNavigationBar: GlassBottomNav(
+            currentIndex: _currentIndex,
+            onTap: (i) => setState(() => _currentIndex = i),
+          ),
+        ),
+        if (_showSplash)
+          FadeTransition(
+            opacity: _logoOpacity,
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: const Color(0xFF0A0E21),
+              child: Center(
+                child: ScaleTransition(
+                  scale: _logoScale,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 120,
+                        height: 120,
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'RecycPay',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Recycler, Gagner, Avancer',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.7),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
