@@ -6,6 +6,25 @@ class ChatService {
   final List<ChatConversation> _conversations = [];
   List<ChatConversation> get conversations => List.unmodifiable(_conversations);
 
+  ChatConversation getOrCreateConversation(String userId, String userName, String? photoUrl) {
+    final existing = _conversations.cast<ChatConversation?>().firstWhere(
+      (c) => c!.otherUserId == userId,
+      orElse: () => null,
+    );
+    if (existing != null) return existing;
+    final conv = ChatConversation(
+      id: 'conv_$userId',
+      otherUserId: userId,
+      otherUserName: userName,
+      otherUserPhotoUrl: photoUrl,
+      lastMessage: '',
+      lastMessageTime: DateTime.now(),
+      unreadCount: 0,
+    );
+    _conversations.insert(0, conv);
+    return conv;
+  }
+
   void seedConversations() {
     final conv1 = ChatConversation(
       id: 'conv_1',

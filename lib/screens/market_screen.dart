@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../widgets/glass_container.dart';
+import 'user_profile_screen.dart';
 
 class MarketScreen extends StatefulWidget {
   const MarketScreen({super.key});
@@ -667,7 +668,11 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
             : AppColors.orange;
     final waUrl = 'https://wa.me/${user.phone.replaceAll(RegExp(r'[^0-9]'), '')}';
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(
+        builder: (_) => UserProfileScreen(user: user),
+      )),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: AppColors.softBlack, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.glassBorder)),
@@ -767,6 +772,7 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
           ),
         ],
       ),
+    )
     );
   }
 
