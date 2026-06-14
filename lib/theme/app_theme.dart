@@ -10,7 +10,7 @@ class AppColors {
   static const grey = Color(0xFF8E8E93);
   static const lightGrey = Color(0xFFF2F2F7);
   static const cardBackground = Color(0xFF1C1C1E);
-  static const glassBackground = Color(0x99FFFFFF);
+  static const glassBackground = Color(0x992C2C2E);
   static const glassBorder = Color(0x33FFFFFF);
   static const red = Color(0xFFFF3B30);
   static const orange = Color(0xFFFF9500);
