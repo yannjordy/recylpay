@@ -173,13 +173,7 @@ class _WalletScreenState extends State<WalletScreen> {
     final levelName = pointsLevel < levelNames.length ? levelNames[pointsLevel] : 'Diamant';
 
     return GestureDetector(
-      onVerticalDragEnd: (details) {
-        if (details.primaryVelocity! > 300) {
-          setState(() => _showPoints = true);
-        } else if (details.primaryVelocity! < -300) {
-          setState(() => _showPoints = false);
-        }
-      },
+      onTap: () => setState(() => _showPoints = !_showPoints),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
@@ -234,26 +228,29 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Text(_showPoints ? 'Mes Points' : 'Mon Solde'),
                 ),
                 const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.grey.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _showPoints ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.grey,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _showPoints ? 'Glisser haut' : 'Glisser bas',
-                        style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11),
-                      ),
-                    ],
+                GestureDetector(
+                  onTap: () => setState(() => _showPoints = !_showPoints),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _showPoints ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.grey,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _showPoints ? 'Voir solde' : 'Voir points',
+                          style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
