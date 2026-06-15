@@ -18,6 +18,7 @@ class _WalletScreenState extends State<WalletScreen> {
   int _selectedTab = 0;
 
   final _depositController = TextEditingController();
+  final _amountController = TextEditingController();
   final _phoneController = TextEditingController(text: '+237');
   String? _selectedOperator;
 
@@ -67,6 +68,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void dispose() {
     _depositController.dispose();
+    _amountController.dispose();
     _phoneController.dispose();
     _paymentRecipientController.dispose();
     _paymentAmountController.dispose();
@@ -106,7 +108,8 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildTabSelector(),
               const SizedBox(height: 24),
               if (_selectedTab == 0) _buildDepositForm(wallet),
-              if (_selectedTab == 1) _buildPaymentForm(wallet),
+              if (_selectedTab == 1) _buildWithdrawForm(wallet),
+              if (_selectedTab == 2) _buildPaymentForm(wallet),
               const SizedBox(height: 16),
               _buildHistorySection(wallet),
             ],
@@ -380,9 +383,9 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildTabSelector() {
-    final tabLabels = ['Dépôt', 'Payer'];
-    final tabIcons = [Icons.add_rounded, Icons.send_rounded];
-    final tabColors = [AppColors.green, const Color(0xFF007AFF)];
+    final tabLabels = ['Dépôt', 'Retrait', 'Payer'];
+    final tabIcons = [Icons.add_rounded, Icons.logout_rounded, Icons.send_rounded];
+    final tabColors = [AppColors.green, AppColors.orange, const Color(0xFF007AFF)];
 
     return Container(
       padding: const EdgeInsets.all(6),
@@ -392,7 +395,7 @@ class _WalletScreenState extends State<WalletScreen> {
         border: Border.all(color: AppColors.glassBorder),
       ),
       child: Row(
-        children: List.generate(2, (i) {
+        children: List.generate(3, (i) {
           final isActive = _selectedTab == i;
           return Expanded(
             child: GestureDetector(
@@ -646,6 +649,107 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWithdrawForm(WalletProvider wallet) {
+    return GlassContainer(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.orange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.logout_rounded, color: AppColors.orange, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Retrait Mobile Money', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600)),
+                  SizedBox(height: 2),
+                  Text('Vers votre compte Mobile Money', style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+            decoration: const InputDecoration(labelText: 'Numéro Mobile Money'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _amountController,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+            decoration: InputDecoration(
+              labelText: 'Montant à retirer',
+              suffixText: 'FCFA',
+              suffixStyle: const TextStyle(color: AppColors.orange, fontWeight: FontWeight.w600),
+            ),
+          ),
+          if (wallet.error != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded, color: AppColors.red, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(wallet.error!, style: const TextStyle(color: AppColors.red, fontSize: 12))),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _amountController.clear(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.grey,
+                    side: const BorderSide(color: AppColors.glassBorder),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Effacer', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                flex: 2,
+                child: PillButton(
+                  label: 'Retirer',
+                  color: AppColors.orange,
+                  onTap: () async {
+                    final a = double.tryParse(_amountController.text);
+                    if (a == null || a <= 0) return;
+                    final ok = await wallet.requestWithdrawal(a, _phoneController.text.trim());
+                    if (ok && mounted) {
+                      _amountController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Demande de retrait envoyée'), backgroundColor: AppColors.green),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
