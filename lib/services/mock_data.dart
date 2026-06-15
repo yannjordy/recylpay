@@ -306,6 +306,34 @@ class MockData {
       final city = _cities[i % _cities.length];
       final type = types[i % 3];
       final status = statuses[i % statuses.length];
+
+      final wasteImgs = [
+        'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1542293787938-c9e299b880cc?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1578911595541-1e31d7d7c1ed?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1605600659873-2c5c9e8e5b7b?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1529078155058-5d71645b8a02?auto=format&fit=crop&w=400&h=300&q=80',
+        'https://images.unsplash.com/photo-1567393528677-d6adae7d4a0a?auto=format&fit=crop&w=400&h=300&q=80',
+      ];
+
+      final descriptions = [
+        'Bouteilles plastique PET propres et compressées. Poids estimé : 15 kg. À collecter au domicile.',
+        'Cartons d\'emballage pliés et ficelés. Environ 25 kg. Prêt pour le recyclage.',
+        'Déchets électroniques : vieux téléphones, chargeurs, câbles. À dépolluer avant recyclage.',
+        'Ferraille et métaux mélangés (fer, aluminium, cuivre). Poids total estimé : 50 kg.',
+        'Huile de friture usagée en bidons de 5L. 20 litres à collecter pour valorisation énergétique.',
+        'Pneus usagés (12 unités) à collecter pour recyclage caoutchouc. Stockés sous abri.',
+        'Verre mélangé (bouteilles, bocaux) dans bac de collecte. Environ 30 kg.',
+        'Déchets verts (feuilles, branchages) issus du jardinage. À composter ou valoriser.',
+        'Papiers et magazines en vrac. Poids estimé : 10 kg. À collecter au bureau.',
+        'Boîtes de conserve et canettes aluminium lavées et aplaties. 8 kg au total.',
+      ];
+
+      final photoCount = 2 + (i % 3); // 2-4 photos per mission
+      final imgs = List.generate(photoCount, (j) => wasteImgs[(i + j) % wasteImgs.length]);
+
       missions.add(MissionModel(
         id: 'mission_$i',
         type: type,
@@ -319,6 +347,8 @@ class MockData {
         status: status,
         commission: 300.0 + (i * 180) + (i % 7) * 100,
         distance: 0.5 + (i % 15) * 0.8,
+        imageUrls: imgs,
+        description: descriptions[i % descriptions.length],
         pickupLatitude: city.$2 + 0.02,
         pickupLongitude: city.$3 + 0.02,
         dropLatitude: city.$2 + 0.08,

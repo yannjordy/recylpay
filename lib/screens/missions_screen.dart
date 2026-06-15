@@ -255,6 +255,14 @@ class _MissionsScreenState extends State<MissionsScreen> {
           const SizedBox(height: 6),
           _buildAddressRow(Icons.flag_rounded, mission.dropAddress ?? 'Adresse de dépôt'),
           const SizedBox(height: 12),
+          // Photos
+          if (mission.imageUrls.isNotEmpty)
+            _buildPhotoRow(mission.imageUrls),
+          if (mission.imageUrls.isNotEmpty) const SizedBox(height: 12),
+          // Description
+          if (mission.description.isNotEmpty)
+            _buildDescription(mission.description),
+          if (mission.description.isNotEmpty) const SizedBox(height: 12),
           Row(
             children: [
               if (mission.distance != null)
@@ -328,6 +336,67 @@ class _MissionsScreenState extends State<MissionsScreen> {
             style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoRow(List<String> imageUrls) {
+    return SizedBox(
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: imageUrls.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (ctx, i) {
+          return GestureDetector(
+            onTap: () => _showPhotoFullscreen(imageUrls, i),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                imageUrls[i],
+                width: 120, height: 100, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 120, height: 100,
+                  color: AppColors.softBlack,
+                  child: const Icon(Icons.broken_image_rounded, color: AppColors.grey),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDescription(String description) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.dark,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.description_rounded, color: AppColors.grey, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              description,
+              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPhotoFullscreen(List<String> images, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _FullScreenGallery(images: images, initialIndex: initialIndex),
       ),
     );
   }
@@ -437,6 +506,64 @@ class _MissionsScreenState extends State<MissionsScreen> {
               onTap: () => context.read<MissionProvider>().loadMissions(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FullScreenGallery extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+  const _FullScreenGallery({required this.images, required this.initialIndex});
+
+  @override
+  State<_FullScreenGallery> createState() => _FullScreenGalleryState();
+}
+
+class _FullScreenGalleryState extends State<_FullScreenGallery> {
+  late PageController _pageCtrl;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageCtrl = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text('${_currentIndex + 1} / ${widget.images.length}',
+            style: const TextStyle(color: Colors.white)),
+        centerTitle: true,
+      ),
+      body: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: PageView.builder(
+          controller: _pageCtrl,
+          itemCount: widget.images.length,
+          onPageChanged: (i) => setState(() => _currentIndex = i),
+          itemBuilder: (ctx, i) => InteractiveViewer(
+            child: Center(
+              child: Image.network(
+                widget.images[i],
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_rounded, color: AppColors.grey, size: 64),
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -11,6 +11,8 @@ class MissionModel {
   final String status;
   final double? commission;
   final double? distance;
+  final List<String> imageUrls;
+  final String description;
   final double? pickupLatitude;
   final double? pickupLongitude;
   final double? dropLatitude;
@@ -34,6 +36,8 @@ class MissionModel {
     this.status = 'available',
     this.commission,
     this.distance,
+    this.imageUrls = const [],
+    this.description = '',
     this.pickupLatitude,
     this.pickupLongitude,
     this.dropLatitude,
@@ -58,6 +62,8 @@ class MissionModel {
         'status': status,
         'commission': commission,
         'distance': distance,
+        'image_urls': imageUrls,
+        'description': description,
         'pickup_latitude': pickupLatitude,
         'pickup_longitude': pickupLongitude,
         'drop_latitude': dropLatitude,
@@ -82,6 +88,8 @@ class MissionModel {
         status: json['status'] as String? ?? 'available',
         commission: (json['commission'] as num?)?.toDouble(),
         distance: (json['distance'] as num?)?.toDouble(),
+        imageUrls: json['image_urls'] != null ? List<String>.from(json['image_urls']) : [],
+        description: json['description'] as String? ?? '',
         pickupLatitude: (json['pickup_latitude'] as num?)?.toDouble(),
         pickupLongitude: (json['pickup_longitude'] as num?)?.toDouble(),
         dropLatitude: (json['drop_latitude'] as num?)?.toDouble(),
@@ -142,6 +150,8 @@ class MissionModel {
     String? status,
     double? commission,
     double? distance,
+    List<String>? imageUrls,
+    String? description,
     double? pickupLatitude,
     double? pickupLongitude,
     double? dropLatitude,
@@ -165,6 +175,8 @@ class MissionModel {
         status: status ?? this.status,
         commission: commission ?? this.commission,
         distance: distance ?? this.distance,
+        imageUrls: imageUrls ?? this.imageUrls,
+        description: description ?? this.description,
         pickupLatitude: pickupLatitude ?? this.pickupLatitude,
         pickupLongitude: pickupLongitude ?? this.pickupLongitude,
         dropLatitude: dropLatitude ?? this.dropLatitude,
