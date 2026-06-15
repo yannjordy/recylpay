@@ -35,6 +35,7 @@ class _WalletScreenState extends State<WalletScreen> {
   final _scrollController = ScrollController();
   final _historyKey = GlobalKey();
   Timer? _searchTimer;
+  bool _showPoints = false;
 
   @override
   void initState() {
@@ -171,116 +172,181 @@ class _WalletScreenState extends State<WalletScreen> {
     final levelNames = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant'];
     final levelName = pointsLevel < levelNames.length ? levelNames[pointsLevel] : 'Diamant';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1A3A2A),
-            AppColors.softBlack,
-            AppColors.softBlack,
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity! > 300) {
+          setState(() => _showPoints = true);
+        } else if (details.primaryVelocity! < -300) {
+          setState(() => _showPoints = false);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _showPoints
+                ? [const Color(0xFF2A251A), AppColors.softBlack, AppColors.softBlack]
+                : [const Color(0xFF1A3A2A), AppColors.softBlack, AppColors.softBlack],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.glassBorder),
+          boxShadow: [
+            BoxShadow(
+              color: (_showPoints ? AppColors.yellow : AppColors.green).withValues(alpha: 0.08),
+              blurRadius: 30,
+              offset: const Offset(0, 8),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.glassBorder),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.green.withValues(alpha: 0.08),
-            blurRadius: 30,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.green.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (_showPoints ? AppColors.yellow : AppColors.green).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      _showPoints ? Icons.star_rounded : Icons.account_balance_wallet_rounded,
+                      color: _showPoints ? AppColors.yellow : AppColors.green,
+                      size: 24,
+                      key: ValueKey(_showPoints),
+                    ),
+                  ),
                 ),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.green, size: 24),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.green.withValues(alpha: 0.3)),
+                const SizedBox(width: 12),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    color: _showPoints ? AppColors.yellow : AppColors.green,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  child: Text(_showPoints ? 'Mes Points' : 'Mon Solde'),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle_rounded, color: AppColors.green, size: 14),
-                    SizedBox(width: 6),
-                    Text('Actif', style: TextStyle(color: AppColors.green, fontSize: 12, fontWeight: FontWeight.w600)),
-                  ],
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _showPoints ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.grey,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _showPoints ? 'Glisser haut' : 'Glisser bas',
+                        style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Text('Solde disponible', style: TextStyle(color: AppColors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 6),
-          Text(
-            _fcfx(wallet.balance),
-            style: const TextStyle(color: AppColors.green, fontSize: 42, fontWeight: FontWeight.w800, letterSpacing: -1, height: 1.1),
-          ),
-          const SizedBox(height: 24),
-          _sliderRow(
-            icon: Icons.monetization_on_rounded,
-            iconColor: AppColors.green,
-            label: '${_fcfx(wallet.balance)}',
-            maxLabel: '500 000 FCFA',
-            value: moneyProgress,
-            barColor: AppColors.green,
-          ),
-          const SizedBox(height: 16),
-          _sliderRow(
-            icon: Icons.star_rounded,
-            iconColor: AppColors.yellow,
-            label: '$points pts · $levelName',
-            maxLabel: '$nextLevel pts',
-            value: pointsProgress,
-            barColor: AppColors.yellow,
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: _showPoints
+                  ? _pointsContent(points, pointsProgress, levelName, nextLevel)
+                  : _moneyContent(wallet, moneyProgress),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _sliderRow({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String maxLabel,
-    required double value,
-    required Color barColor,
-  }) {
+  Widget _moneyContent(WalletProvider wallet, double moneyProgress) {
     return Column(
+      key: const ValueKey('money'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Solde disponible', style: TextStyle(color: AppColors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
+        Text(
+          _fcfx(wallet.balance),
+          style: const TextStyle(color: AppColors.green, fontSize: 42, fontWeight: FontWeight.w800, letterSpacing: -1, height: 1.1),
+        ),
+        const SizedBox(height: 20),
+        _sliderBar(value: moneyProgress, barColor: AppColors.green, label: '${_fcfx(wallet.balance)}', maxLabel: '500 000 FCFA'),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            _statChip(Icons.receipt_rounded, '${wallet.transactions.length}', 'Opérations'),
+            const SizedBox(width: 16),
+            _statChip(
+              Icons.access_time_rounded,
+              wallet.transactions.isNotEmpty ? _relDateShort(wallet.transactions.first.createdAt) : '--',
+              'Dernière',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _pointsContent(int points, double pointsProgress, String levelName, int nextLevel) {
+    return Column(
+      key: const ValueKey('points'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
+            Text(
+              '$points pts',
+              style: const TextStyle(color: AppColors.yellow, fontSize: 42, fontWeight: FontWeight.w800, letterSpacing: -1, height: 1.1),
+            ),
+            const SizedBox(width: 14),
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.yellow.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.yellow.withValues(alpha: 0.3)),
               ),
-              child: Icon(icon, color: iconColor, size: 16),
+              child: Text('Niveau $levelName', style: const TextStyle(color: AppColors.yellow, fontSize: 12, fontWeight: FontWeight.w700)),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _sliderBar(value: pointsProgress, barColor: AppColors.yellow, label: '$points pts', maxLabel: '$nextLevel pts'),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            _statChip(Icons.emoji_events_rounded, levelName, 'Palier actuel'),
+            const SizedBox(width: 16),
+            _statChip(Icons.trending_up_rounded, '$nextLevel pts', 'Prochain palier'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _sliderBar({required double value, required Color barColor, required String label, required String maxLabel}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
             Text(maxLabel, style: TextStyle(color: AppColors.grey.withValues(alpha: 0.6), fontSize: 11)),
           ],
         ),
@@ -291,21 +357,34 @@ class _WalletScreenState extends State<WalletScreen> {
             value: value,
             backgroundColor: Colors.white.withValues(alpha: 0.06),
             valueColor: AlwaysStoppedAnimation<Color>(barColor),
-            minHeight: 10,
+            minHeight: 12,
           ),
         ),
       ],
     );
   }
 
-  Widget _balanceStat(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
-      ],
+  Widget _statChip(IconData icon, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.grey, size: 14),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(label, style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 10)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
