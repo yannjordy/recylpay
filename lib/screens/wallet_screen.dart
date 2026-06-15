@@ -602,9 +602,6 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildPaymentForm(WalletProvider wallet) {
-    final amount = double.tryParse(_paymentAmountController.text) ?? 0;
-    final commission = amount * 0.02;
-    final netAmount = amount - commission;
 
     return GlassContainer(
       width: double.infinity,
@@ -704,10 +701,6 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
             onChanged: (_) => setState(() {}),
           ),
-          if (amount > 0) ...[
-            const SizedBox(height: 10),
-            _paymentRecap(amount, commission, netAmount),
-          ],
           if (wallet.error != null) ...[
             const SizedBox(height: 12),
             Container(
@@ -764,28 +757,6 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _paymentRecap(double amount, double commission, double netAmount) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.dark,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.glassBorder),
-      ),
-      child: Column(
-        children: [
-          _recapRow('Vous envoyez', '$amount FCFA', Colors.white),
-          const SizedBox(height: 6),
-          _recapRow('Frais (2%)', '-${commission.toInt()} FCFA', AppColors.red),
-          const SizedBox(height: 6),
-          const Divider(color: AppColors.glassBorder, height: 1),
-          const SizedBox(height: 6),
-          _recapRow('Le destinataire reçoit', '${netAmount.toInt()} FCFA', AppColors.green),
         ],
       ),
     );
