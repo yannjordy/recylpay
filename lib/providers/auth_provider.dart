@@ -233,6 +233,18 @@ class AuthProvider extends ChangeNotifier {
     return 'https://recylpay.com/parrainage?code=${_user!.referralCode}';
   }
 
+  Future<void> refreshUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('current_email');
+    if (email == null) return;
+    final usersJson = prefs.getString('registered_users') ?? '{}';
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+    if (!users.containsKey(email)) return;
+    final data = Map<String, dynamic>.from(users[email]);
+    _user = _userFromMap(email, data);
+    notifyListeners();
+  }
+
   Future<void> addPoints(int amount) async {
     if (_user == null) return;
     final prefs = await SharedPreferences.getInstance();

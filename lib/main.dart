@@ -10,6 +10,8 @@ import 'providers/market_provider.dart';
 import 'providers/collection_provider.dart';
 import 'providers/mission_provider.dart';
 import 'providers/ai_provider.dart';
+import 'providers/ranking_provider.dart';
+import 'screens/ranking_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/market_screen.dart';
@@ -68,6 +70,7 @@ class RecycPayApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CollectionProvider()),
         ChangeNotifierProvider(create: (_) => MissionProvider()),
         ChangeNotifierProvider(create: (_) => AiProvider()),
+        ChangeNotifierProvider(create: (_) => RankingProvider()),
       ],
       child: MaterialApp(
         title: 'RecycPay',
@@ -92,6 +95,7 @@ class RecycPayApp extends StatelessWidget {
           '/collection': (_) => const CollectionScreen(),
           '/missions': (_) => const MissionsScreen(),
           '/sorting-guide': (_) => const SortingGuideScreen(),
+          '/ranking': (_) => const RankingScreen(),
         },
       ),
     );

@@ -64,6 +64,10 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/how-it-works');
                   }),
+                  _drawerItem(Icons.leaderboard_rounded, 'Classement', () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/ranking');
+                  }),
                   _drawerItem(Icons.shield_rounded, 'Confidentialité', () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/privacy');
