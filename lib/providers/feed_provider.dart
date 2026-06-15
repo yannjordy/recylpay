@@ -6,10 +6,26 @@ class FeedProvider extends ChangeNotifier {
   List<PostModel> _posts = [];
   bool _isLoading = false;
   String? _error;
+  String _searchQuery = '';
 
-  List<PostModel> get posts => _posts;
+  List<PostModel> get posts {
+    if (_searchQuery.isEmpty) return _posts;
+    final q = _searchQuery.toLowerCase();
+    return _posts.where((p) =>
+      p.userName.toLowerCase().contains(q) ||
+      (p.description?.toLowerCase().contains(q) ?? false) ||
+      p.wasteTypes.any((t) => t.toLowerCase().contains(q))
+    ).toList();
+  }
+
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String get searchQuery => _searchQuery;
+
+  set searchQuery(String v) {
+    _searchQuery = v;
+    notifyListeners();
+  }
 
   FeedProvider() {
     _posts = List.from(MockData.posts);
@@ -55,6 +71,12 @@ class FeedProvider extends ChangeNotifier {
 
   List<CommentModel> getComments(String postId) {
     return MockData.comments[postId] ?? [];
+  }
+
+  void deletePost(String postId) {
+    _posts.removeWhere((p) => p.id == postId);
+    MockData.posts.removeWhere((p) => p.id == postId);
+    notifyListeners();
   }
 
   void clearError() {

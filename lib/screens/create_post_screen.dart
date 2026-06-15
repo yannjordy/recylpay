@@ -245,11 +245,13 @@ class _CreatePostScreenState extends State<CreatePostScreen>
                   )).toList(),
                 ),
               ],
-              if (post.imageUrl != null && post.imageUrl!.startsWith('http')) ...[
+              if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(post.imageUrl!, fit: BoxFit.cover, height: 160, width: double.infinity),
+                  child: post.imageUrl!.startsWith('http')
+                      ? Image.network(post.imageUrl!, fit: BoxFit.cover, height: 160, width: double.infinity)
+                      : Image.file(File(post.imageUrl!), fit: BoxFit.cover, height: 160, width: double.infinity, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                 ),
               ],
               if (post.description != null) ...[

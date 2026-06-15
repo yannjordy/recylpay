@@ -8,6 +8,7 @@ import '../models/recycling_company_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/map_provider.dart';
 import '../providers/market_provider.dart';
+import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 
@@ -27,6 +28,9 @@ class _MapScreenState extends State<MapScreen> {
   bool _showRecycleurs = true;
   bool _isDarkMap = true;
   bool _showReportForm = false;
+  final _reportDescriptionController = TextEditingController();
+  String _reportSeverity = 'medium';
+  bool _isSubmittingReport = false;
 
   Map<String, dynamic>? _selectedUser;
   PollutionReportModel? _selectedReport;
@@ -563,6 +567,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildReportForm() {
+    final severities = ['low', 'medium', 'high', 'critical'];
+    final severityLabels = {'low': 'Faible', 'medium': 'Moyen', 'high': 'Élevé', 'critical': 'Critique'};
+    final severityColors = {'low': AppColors.green, 'medium': AppColors.yellow, 'high': AppColors.orange, 'critical': AppColors.red};
+
     return Positioned(
       left: 12, right: 12, bottom: 24,
       child: Container(
@@ -585,15 +593,67 @@ class _MapScreenState extends State<MapScreen> {
                 GestureDetector(onTap: () => setState(() => _showReportForm = false), child: const Icon(Icons.close_rounded, color: AppColors.grey)),
               ],
             ),
-            const SizedBox(height: 16),
-            const Text('Bientôt disponible.\nSignale les dépôts sauvages, caniveaux bouchés et décharges.', style: TextStyle(color: AppColors.grey, fontSize: 13, height: 1.4)),
+            const SizedBox(height: 12),
+            const Text('Décrivez la pollution', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _reportDescriptionController,
+              maxLines: 3,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Ex: Dépôt sauvage de plastiques au carrefour...',
+                hintStyle: const TextStyle(color: AppColors.grey, fontSize: 13),
+                filled: true,
+                fillColor: AppColors.dark,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text('Niveau de sévérité', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+            const SizedBox(height: 8),
+            Row(
+              children: severities.map((s) {
+                final selected = _reportSeverity == s;
+                final color = severityColors[s]!;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _reportSeverity = s),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? color.withValues(alpha: 0.2) : AppColors.dark,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: selected ? color : AppColors.glassBorder),
+                      ),
+                      child: Text(
+                        severityLabels[s]!,
+                        style: TextStyle(
+                          color: selected ? color : AppColors.grey,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => setState(() => _showReportForm = false),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)), padding: const EdgeInsets.symmetric(vertical: 12)),
-                child: const Text('Fermer'),
+                onPressed: _isSubmittingReport ? null : _submitReport,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.red,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: _isSubmittingReport
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Signaler', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -602,8 +662,50 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  void _submitReport() async {
+    final desc = _reportDescriptionController.text.trim();
+    if (desc.isEmpty) return;
+
+    setState(() => _isSubmittingReport = true);
+
+    final mp = context.read<MapProvider>();
+    final pos = mp.currentPosition ?? const LatLng(Constants.cameroonLat, Constants.cameroonLng);
+
+    final report = PollutionReportModel(
+      id: 'report_${DateTime.now().millisecondsSinceEpoch}',
+      userId: '',
+      userName: 'Moi',
+      description: desc,
+      latitude: pos.latitude,
+      longitude: pos.longitude,
+      address: 'Position actuelle',
+      severity: _reportSeverity,
+      reportCount: 1,
+      isCritical: _reportSeverity == 'critical',
+      createdAt: DateTime.now(),
+    );
+
+    await mp.reportPollution(report);
+
+    if (mounted) {
+      setState(() {
+        _showReportForm = false;
+        _isSubmittingReport = false;
+        _reportDescriptionController.clear();
+        _reportSeverity = 'medium';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pollution signalée! Merci de votre contribution.'),
+          backgroundColor: AppColors.green,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _reportDescriptionController.dispose();
     context.read<MapProvider>().stopTracking();
     _mapController.dispose();
     super.dispose();

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -15,10 +17,18 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     context.read<FeedProvider>().loadPosts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,6 +59,45 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.softBlack,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.glassBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search_rounded, color: AppColors.grey, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (v) => context.read<FeedProvider>().searchQuery = v,
+                          decoration: const InputDecoration(
+                            hintText: 'Rechercher dans le feed...',
+                            border: InputBorder.none,
+                            filled: false,
+                            contentPadding: EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                      if (_searchController.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            context.read<FeedProvider>().searchQuery = '';
+                          },
+                          child: const Icon(Icons.clear_rounded, color: AppColors.grey, size: 20),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             if (feed.posts.isEmpty && !feed.isLoading)
               SliverFillRemaining(
                 child: Center(
@@ -73,6 +122,30 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext ctx, PostModel post, FeedProvider feed) {
+    showDialog(
+      context: ctx,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.softBlack,
+        title: const Text('Supprimer', style: TextStyle(color: Colors.white)),
+        content: const Text('Voulez-vous vraiment supprimer cette publication?', style: TextStyle(color: AppColors.grey)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () {
+              feed.deletePost(post.id);
+              Navigator.pop(dCtx);
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(content: Text('Publication supprimée'), backgroundColor: AppColors.green),
+              );
+            },
+            child: const Text('Supprimer', style: TextStyle(color: AppColors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -124,6 +197,20 @@ class _FeedScreenState extends State<FeedScreen> {
                   ),
                 ),
                 Text(post.createdAt.toRelative(), style: const TextStyle(color: AppColors.grey, fontSize: 11)),
+                if (context.read<AuthProvider>().user?.name == post.userName) ...[
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => _confirmDelete(context, post, feed),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.delete_rounded, color: AppColors.red, size: 16),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -152,14 +239,22 @@ class _FeedScreenState extends State<FeedScreen> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.zero, bottom: Radius.circular(0)),
-            child: post.imageUrl.isNotEmpty && post.imageUrl.startsWith('http')
-                ? Image.network(
-                    post.imageUrl,
-                    height: 260,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                  )
+            child: post.imageUrl.isNotEmpty
+                ? (post.imageUrl.startsWith('http')
+                    ? Image.network(
+                        post.imageUrl,
+                        height: 260,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                      )
+                    : Image.file(
+                        File(post.imageUrl),
+                        height: 260,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                      ))
                 : _imagePlaceholder(),
           ),
           Padding(

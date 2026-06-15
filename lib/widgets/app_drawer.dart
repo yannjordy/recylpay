@@ -30,6 +30,14 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/my-posts');
                   }),
+                  _drawerItem(Icons.delete_sweep_rounded, 'Collecte', () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/collection');
+                  }),
+                  _drawerItem(Icons.flag_rounded, 'Missions', () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/missions');
+                  }),
                   _drawerItem(Icons.settings_rounded, 'Paramètres', () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/settings');

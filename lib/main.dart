@@ -7,6 +7,9 @@ import 'providers/wallet_provider.dart';
 import 'providers/map_provider.dart';
 import 'providers/feed_provider.dart';
 import 'providers/market_provider.dart';
+import 'providers/collection_provider.dart';
+import 'providers/mission_provider.dart';
+import 'providers/ai_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/market_screen.dart';
@@ -26,6 +29,8 @@ import 'screens/help_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/landing_page.dart';
 import 'screens/referral_screen.dart';
+import 'screens/collection_screen.dart';
+import 'screens/missions_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/glass_bottom_nav.dart';
 import 'widgets/app_drawer.dart';
@@ -59,6 +64,9 @@ class RecycPayApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MapProvider()),
         ChangeNotifierProvider(create: (_) => FeedProvider()),
         ChangeNotifierProvider(create: (_) => MarketProvider()),
+        ChangeNotifierProvider(create: (_) => CollectionProvider()),
+        ChangeNotifierProvider(create: (_) => MissionProvider()),
+        ChangeNotifierProvider(create: (_) => AiProvider()),
       ],
       child: MaterialApp(
         title: 'RecycPay',
@@ -80,6 +88,8 @@ class RecycPayApp extends StatelessWidget {
           '/privacy': (_) => const PrivacyScreen(),
           '/help': (_) => const HelpScreen(),
           '/about': (_) => const AboutScreen(),
+          '/collection': (_) => const CollectionScreen(),
+          '/missions': (_) => const MissionsScreen(),
         },
       ),
     );
