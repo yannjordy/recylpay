@@ -90,6 +90,42 @@ class WalletProvider extends ChangeNotifier {
     return null;
   }
 
+  Future<List<Map<String, dynamic>>> searchRecipients(String query) async {
+    if (query.trim().isEmpty) return [];
+    final q = query.toLowerCase();
+    final results = <Map<String, dynamic>>[];
+    final seenIds = <String>{};
+
+    for (final u in MockData.users) {
+      if (seenIds.contains(u.id)) continue;
+      if (u.uniqueId.toLowerCase().contains(q) || u.name.toLowerCase().contains(q)) {
+        results.add({'name': u.name, 'uniqueId': u.uniqueId, 'id': u.id});
+        seenIds.add(u.id);
+        if (results.length >= 10) break;
+      }
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = prefs.getString('registered_users') ?? '{}';
+      final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+      for (final entry in users.entries) {
+        if (results.length >= 10) break;
+        final data = Map<String, dynamic>.from(entry.value);
+        final id = data['id'] as String;
+        if (seenIds.contains(id)) continue;
+        final name = data['name'] as String? ?? '';
+        final uid = data['unique_id'] as String? ?? '';
+        if (uid.toLowerCase().contains(q) || name.toLowerCase().contains(q)) {
+          results.add({'name': name, 'uniqueId': uid, 'id': id});
+          seenIds.add(id);
+        }
+      }
+    } catch (_) {}
+
+    return results;
+  }
+
   Future<UserModel?> _findUserByUniqueId(String uniqueId) async {
     final normalized =
         uniqueId.startsWith('@') ? uniqueId.toLowerCase() : '@${uniqueId.toLowerCase()}';

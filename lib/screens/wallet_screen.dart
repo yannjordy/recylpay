@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/wallet_provider.dart';
@@ -28,9 +29,12 @@ class _WalletScreenState extends State<WalletScreen> {
   final _paymentRecipientController = TextEditingController();
   final _paymentAmountController = TextEditingController();
   String? _foundRecipientName;
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
 
   final _scrollController = ScrollController();
   final _historyKey = GlobalKey();
+  Timer? _searchTimer;
 
   @override
   void initState() {
@@ -42,6 +46,27 @@ class _WalletScreenState extends State<WalletScreen> {
     } catch (_) {}
   }
 
+  void _searchUsers(String query) {
+    _searchTimer?.cancel();
+    if (query.trim().length < 2) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+    _searchTimer = Timer(const Duration(milliseconds: 300), () async {
+      final wallet = context.read<WalletProvider>();
+      final results = await wallet.searchRecipients(query.trim());
+      if (mounted) {
+        setState(() {
+          _searchResults = results;
+          _isSearching = false;
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -49,6 +74,7 @@ class _WalletScreenState extends State<WalletScreen> {
     _depositController.dispose();
     _paymentRecipientController.dispose();
     _paymentAmountController.dispose();
+    _searchTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -636,37 +662,111 @@ class _WalletScreenState extends State<WalletScreen> {
             controller: _paymentRecipientController,
             style: const TextStyle(color: Colors.white, fontSize: 15),
             decoration: InputDecoration(
-              labelText: 'ID du destinataire',
-              hintText: '@utilisateur',
+              labelText: 'ID ou nom du destinataire',
+              hintText: '@utilisateur ou nom',
               hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.4)),
               suffixIcon: _paymentRecipientController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: AppColors.green.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.search_rounded, color: AppColors.green, size: 20),
-                        ),
-                        onPressed: () async {
-                          final result = await wallet.findRecipient(_paymentRecipientController.text.trim());
-                          if (result != null && mounted) {
-                            setState(() => _foundRecipientName = result['name'] as String);
-                          } else if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Utilisateur introuvable'), backgroundColor: AppColors.red),
-                            );
-                          }
-                        },
-                      ),
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded, color: AppColors.grey, size: 20),
+                      onPressed: () {
+                        _paymentRecipientController.clear();
+                        setState(() {
+                          _foundRecipientName = null;
+                          _searchResults = [];
+                        });
+                      },
                     )
                   : null,
             ),
-            onChanged: (_) => setState(() => _foundRecipientName = null),
+            onChanged: (v) {
+              setState(() {
+                _foundRecipientName = null;
+                _isSearching = true;
+              });
+              _searchUsers(v);
+            },
           ),
+          if (_searchResults.isNotEmpty && _foundRecipientName == null) ...[
+            const SizedBox(height: 6),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 220),
+              decoration: BoxDecoration(
+                color: AppColors.softBlack,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.glassBorder),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                itemCount: _searchResults.length,
+                separatorBuilder: (_, __) => const Divider(color: AppColors.glassBorder, height: 1, indent: 14, endIndent: 14),
+                itemBuilder: (ctx, i) {
+                  final r = _searchResults[i];
+                  final uid = r['uniqueId'] as String;
+                  final name = r['name'] as String;
+                  return InkWell(
+                    onTap: () {
+                      _paymentRecipientController.text = uid;
+                      _paymentRecipientController.selection = TextSelection.collapsed(offset: uid.length);
+                      setState(() {
+                        _foundRecipientName = name;
+                        _searchResults = [];
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36, height: 36,
+                            decoration: BoxDecoration(
+                              color: AppColors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                style: const TextStyle(color: AppColors.green, fontWeight: FontWeight.w700, fontSize: 15),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(name, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+                                Text(uid, style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.add_rounded, color: AppColors.green, size: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+          if (_isSearching && _searchResults.isEmpty && _paymentRecipientController.text.length >= 2 && _foundRecipientName == null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.softBlack,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.glassBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search_off_rounded, color: AppColors.grey, size: 18),
+                  const SizedBox(width: 10),
+                  const Text('Aucun utilisateur trouvé', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+                ],
+              ),
+            ),
+          ],
           if (_foundRecipientName != null) ...[
             const SizedBox(height: 10),
             Container(
