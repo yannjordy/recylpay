@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/wallet_provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/pill_button.dart';
@@ -743,14 +744,24 @@ class _WalletScreenState extends State<WalletScreen> {
                     final id = _paymentRecipientController.text.trim();
                     final a = double.tryParse(_paymentAmountController.text);
                     if (id.isEmpty || a == null || a <= 0) return;
-                    final ok = await wallet.sendPayment(id, a);
-                    if (ok && mounted) {
-                      _paymentRecipientController.clear();
-                      _paymentAmountController.clear();
-                      setState(() => _foundRecipientName = null);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${a.toInt()} FCFA envoyés'), backgroundColor: AppColors.green),
-                      );
+                    final points = await wallet.sendPayment(id, a);
+                    if (mounted) {
+                      if (points > 0) {
+                        context.read<AuthProvider>().addPoints(points);
+                        _paymentRecipientController.clear();
+                        _paymentAmountController.clear();
+                        setState(() => _foundRecipientName = null);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${a.toInt()} FCFA envoyés · +$points pts'),
+                            backgroundColor: AppColors.green,
+                          ),
+                        );
+                      } else if (wallet.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(wallet.error!), backgroundColor: AppColors.red),
+                        );
+                      }
                     }
                   },
                 ),

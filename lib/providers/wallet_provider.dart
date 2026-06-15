@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction_model.dart';
 import '../models/user_model.dart';
 import '../services/mock_data.dart';
@@ -81,39 +83,68 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> findRecipient(String uniqueId) async {
-    final normalized = uniqueId.startsWith('@') ? uniqueId : '@$uniqueId';
-    try {
-      final user = MockData.users.firstWhere((u) => u.uniqueId == normalized);
+    final user = await _findUserByUniqueId(uniqueId);
+    if (user != null) {
       return {'name': user.name, 'uniqueId': user.uniqueId, 'id': user.id};
-    } catch (_) {
-      return null;
     }
+    return null;
   }
 
-  Future<bool> sendPayment(String recipientUniqueId, double amount) async {
+  Future<UserModel?> _findUserByUniqueId(String uniqueId) async {
+    final normalized =
+        uniqueId.startsWith('@') ? uniqueId.toLowerCase() : '@${uniqueId.toLowerCase()}';
+
+    try {
+      return MockData.users.firstWhere((u) =>
+          u.uniqueId.toLowerCase() == normalized);
+    } catch (_) {}
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = prefs.getString('registered_users') ?? '{}';
+      final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+      for (final entry in users.entries) {
+        final data = Map<String, dynamic>.from(entry.value);
+        final uid = (data['unique_id'] as String?)?.toLowerCase();
+        if (uid == normalized) {
+          return UserModel(
+            id: data['id'] as String,
+            phone: data['phone'] as String? ?? '+237690000000',
+            name: data['name'] as String? ?? entry.key,
+            uniqueId: data['unique_id'] as String?,
+            role: data['role'] as String? ?? 'collecteur',
+            balance: (data['balance'] as num?)?.toDouble() ?? 0,
+            rating: (data['rating'] as num?)?.toDouble() ?? 0,
+            completedMissions: (data['completed_missions'] as num?)?.toInt() ?? 0,
+            isOnline: true,
+          );
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  Future<int> sendPayment(String recipientUniqueId, double amount) async {
     if (amount <= 0) {
       _error = 'Montant invalide';
       notifyListeners();
-      return false;
+      return 0;
     }
     if (amount > _balance) {
       _error = 'Solde insuffisant';
       notifyListeners();
-      return false;
+      return 0;
     }
 
     final normalized = recipientUniqueId.startsWith('@')
         ? recipientUniqueId
         : '@$recipientUniqueId';
-    UserModel? maybeRecipient;
-    try {
-      maybeRecipient = MockData.users.firstWhere((u) => u.uniqueId == normalized);
-    } catch (_) {}
-    final recipient = maybeRecipient;
+    final recipient = await _findUserByUniqueId(normalized);
     if (recipient == null) {
       _error = 'Utilisateur introuvable';
       notifyListeners();
-      return false;
+      return 0;
     }
 
     final commission = (amount * commissionRate);
@@ -163,7 +194,15 @@ class WalletProvider extends ChangeNotifier {
 
     _error = null;
     notifyListeners();
-    return true;
+    return _calculatePoints(amount);
+  }
+
+  int _calculatePoints(double amount) {
+    if (amount >= 25000) return 10;
+    if (amount >= 10000) return 8;
+    if (amount >= 5000) return 6;
+    if (amount >= 1000) return 4;
+    return 2;
   }
 
   Future<bool> requestWithdrawal(double amount, String phone) async {
