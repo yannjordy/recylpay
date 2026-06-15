@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
@@ -28,24 +30,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Register step 2
   String _selectedRole = 'trieur';
-  String? _selectedPhoto;
+  String? _profilePhotoPath;
   final Set<String> _selectedMaterials = {};
 
   final _roles = [
     {'key': 'trieur', 'label': 'Trieur', 'icon': Icons.sort_rounded, 'desc': 'Je trie mes déchets à la source'},
     {'key': 'ramasseur', 'label': 'Ramasseur', 'icon': Icons.cleaning_services_rounded, 'desc': 'Je collecte les déchets'},
     {'key': 'livreur', 'label': 'Livreur', 'icon': Icons.local_shipping_rounded, 'desc': 'Je livre aux entreprises'},
-  ];
-
-  final _profilePhotos = [
-    'https://images.unsplash.com/photo-1769636929354-59165ba73c7e?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1743871698163-a2e470d8eac7?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1743866356139-579e0df74e55?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1710117045399-0fab00350f4d?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1766107349536-c6de9ab38dcd?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1770396528756-d463cc7f0a8a?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1745690720220-24e337e571c7?auto=format&fit=crop&w=200&h=200&q=60',
-    'https://images.unsplash.com/photo-1759300063434-482e4d65f9bf?auto=format&fit=crop&w=200&h=200&q=60',
   ];
 
   @override
@@ -59,13 +50,30 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    if (_loginEmailCtrl.text.trim().isEmpty || _loginPassCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Remplis tous les champs'), backgroundColor: AppColors.red),
+      );
+      return;
+    }
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(_loginEmailCtrl.text.trim(), _loginPassCtrl.text);
     if (ok && mounted) Navigator.pushReplacementNamed(context, '/home');
   }
 
   Future<void> _register() async {
-    if (_selectedPhoto == null || _selectedMaterials.isEmpty) return;
+    if (_profilePhotoPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ajoute une photo de profil'), backgroundColor: AppColors.red),
+      );
+      return;
+    }
+    if (_selectedMaterials.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sélectionne au moins un matériau à recycler'), backgroundColor: AppColors.red),
+      );
+      return;
+    }
     final name = _regEmailCtrl.text.trim().split('@').first;
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(
@@ -73,9 +81,15 @@ class _LoginScreenState extends State<LoginScreen> {
       _regPassCtrl.text,
       name: name,
       role: _selectedRole,
-      photoUrl: _selectedPhoto,
+      photoUrl: _profilePhotoPath,
     );
     if (ok && mounted) Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final picker = ImagePicker();
+    final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512);
+    if (img != null) setState(() => _profilePhotoPath = img.path);
   }
 
   @override
@@ -345,31 +359,43 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         const Text('Photo de profil', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 72,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _profilePhotos.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (ctx, i) {
-              final url = _profilePhotos[i];
-              final selected = _selectedPhoto == url;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedPhoto = url),
-                child: Container(
-                  width: 64, height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: selected ? AppColors.green : Colors.transparent, width: 3),
+        GestureDetector(
+          onTap: _pickProfilePhoto,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
+              color: AppColors.softBlack,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.glassBorder, style: BorderStyle.solid),
+            ),
+            child: Column(
+              children: [
+                if (_profilePhotoPath != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.file(
+                      File(_profilePhotoPath!),
+                      width: 80, height: 80, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.person, color: AppColors.grey, size: 40),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: const Icon(Icons.camera_alt_rounded, color: AppColors.green, size: 36),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: Image.network(url, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: AppColors.grey)),
-                  ),
+                const SizedBox(height: 12),
+                Text(
+                  _profilePhotoPath != null ? 'Modifier la photo' : 'Ajouter une photo',
+                  style: const TextStyle(color: AppColors.green, fontSize: 14, fontWeight: FontWeight.w600),
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 20),
