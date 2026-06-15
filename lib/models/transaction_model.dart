@@ -62,6 +62,10 @@ class TransactionModel {
         return 'Dépôt';
       case 'withdrawal':
         return 'Retrait';
+      case 'payment_received':
+        return 'Paiement reçu';
+      case 'payment_sent':
+        return 'Paiement envoyé';
       case 'payment':
         return 'Paiement';
       case 'commission':
