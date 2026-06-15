@@ -91,6 +91,8 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final wallet = context.watch<WalletProvider>();
+    final auth = context.watch<AuthProvider>();
+    final points = auth.user?.points ?? 0;
 
     return Container(
       color: AppColors.dark,
@@ -103,7 +105,7 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               _buildHeader(),
               const SizedBox(height: 28),
-              _buildBalanceCard(wallet),
+              _buildBalanceCard(wallet, points),
               const SizedBox(height: 32),
               _buildTabSelector(),
               const SizedBox(height: 24),
@@ -160,7 +162,13 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildBalanceCard(WalletProvider wallet) {
+  Widget _buildBalanceCard(WalletProvider wallet, int points) {
+    final pointsProgress = (points % 50) / 50.0;
+    final currentLevel = points ~/ 50;
+    final nextLevelPoints = (currentLevel + 1) * 50;
+    final levelNames = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant'];
+    final levelName = currentLevel < levelNames.length ? levelNames[currentLevel] : 'Diamant';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(28),
@@ -239,6 +247,57 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(width: 32),
               _balanceStat('Dernière', _relDateShort(wallet.transactions.isNotEmpty ? wallet.transactions.first.createdAt : DateTime.now())),
             ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.yellow.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.star_rounded, color: AppColors.yellow, size: 16),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$points pts · Niveau $levelName',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            '$nextLevelPoints pts pour le prochain niveau',
+                            style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: pointsProgress,
+                    backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.yellow),
+                    minHeight: 8,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
