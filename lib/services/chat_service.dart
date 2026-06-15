@@ -1,3 +1,5 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 class ChatService {
   static final ChatService _instance = ChatService._();
   factory ChatService() => _instance;
@@ -5,6 +7,17 @@ class ChatService {
 
   final List<ChatConversation> _conversations = [];
   List<ChatConversation> get conversations => List.unmodifiable(_conversations);
+
+  RealtimeChannel? _messagesChannel;
+
+  bool get _supabaseReady {
+    try {
+      Supabase.instance.client;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   ChatConversation getOrCreateConversation(String userId, String userName, String? photoUrl) {
     final existing = _conversations.cast<ChatConversation?>().firstWhere(
@@ -26,14 +39,12 @@ class ChatService {
   }
 
   void seedConversations() {
+    if (_conversations.isNotEmpty) return;
     final conv1 = ChatConversation(
-      id: 'conv_1',
-      otherUserId: 'user_3',
-      otherUserName: 'Sarah Tchinda',
+      id: 'conv_1', otherUserId: 'user_3', otherUserName: 'Sarah Tchinda',
       otherUserPhotoUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah',
       lastMessage: 'Merci pour la collecte! À demain 👍',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 30)),
-      unreadCount: 2,
+      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 30)), unreadCount: 2,
     );
     conv1.messages.addAll([
       ChatMessage(msgId: 'm1', senderId: 'user_3', text: 'Bonjour! J\'ai du plastique PET à collecter', time: DateTime.now().subtract(const Duration(hours: 2))),
@@ -43,13 +54,10 @@ class ChatService {
     ]);
 
     final conv2 = ChatConversation(
-      id: 'conv_2',
-      otherUserId: 'user_7',
-      otherUserName: 'Patrick Essomba',
+      id: 'conv_2', otherUserId: 'user_7', otherUserName: 'Patrick Essomba',
       otherUserPhotoUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Patrick',
       lastMessage: 'OK je confirme le rdv 14h',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 5)),
-      unreadCount: 0,
+      lastMessageTime: DateTime.now().subtract(const Duration(hours: 5)), unreadCount: 0,
     );
     conv2.messages.addAll([
       ChatMessage(msgId: 'm5', senderId: 'user_self', text: 'Salut Patrick, dispo pour une livraison?', time: DateTime.now().subtract(const Duration(hours: 6))),
@@ -59,13 +67,10 @@ class ChatService {
     ]);
 
     final conv3 = ChatConversation(
-      id: 'conv_3',
-      otherUserId: 'user_1',
-      otherUserName: 'Marie-Claire Ngo',
+      id: 'conv_3', otherUserId: 'user_1', otherUserName: 'Marie-Claire Ngo',
       otherUserPhotoUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Marie',
       lastMessage: 'Très bien, à la prochaine!',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
+      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)), unreadCount: 0,
     );
     conv3.messages.addAll([
       ChatMessage(msgId: 'm9', senderId: 'user_1', text: 'Bonjour, vous collectez le verre?', time: DateTime.now().subtract(const Duration(days: 2))),
@@ -78,15 +83,53 @@ class ChatService {
   }
 
   void sendMessage(String convId, String text) {
-    final conv = _conversations.firstWhere((c) => c.id == convId);
+    final conv = _conversations.cast<ChatConversation?>().firstWhere(
+      (c) => c!.id == convId, orElse: () => null,
+    );
+    if (conv == null) return;
     conv.messages.add(ChatMessage(
       msgId: 'm_${DateTime.now().millisecondsSinceEpoch}',
-      senderId: 'user_self',
-      text: text,
-      time: DateTime.now(),
+      senderId: 'user_self', text: text, time: DateTime.now(),
     ));
     conv.lastMessage = text;
     conv.lastMessageTime = DateTime.now();
+  }
+
+  /// Subscribe to real-time messages for a conversation (Supabase)
+  void listenToMessages(String conversationId, String userId) {
+    _messagesChannel?.unsubscribe();
+    if (!_supabaseReady) return;
+    try {
+      _messagesChannel = Supabase.instance.client
+          .channel('messages:$conversationId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            table: 'messages',
+            filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'conversation_id', value: conversationId),
+            callback: (payload) {
+              final data = payload.newRecord;
+              final conv = _conversations.cast<ChatConversation?>().firstWhere(
+                (c) => c!.id == conversationId, orElse: () => null,
+              );
+              if (conv != null && data['sender_id'] != userId) {
+                conv.messages.add(ChatMessage(
+                  msgId: data['id'] as String,
+                  senderId: data['sender_id'] as String,
+                  text: data['text'] as String,
+                  time: DateTime.parse(data['created_at'] as String),
+                ));
+                conv.lastMessage = data['text'] as String;
+                conv.lastMessageTime = DateTime.now();
+              }
+            },
+          )
+          .subscribe();
+    } catch (_) {}
+  }
+
+  void cancelRealtime() {
+    _messagesChannel?.unsubscribe();
+    _messagesChannel = null;
   }
 }
 

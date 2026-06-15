@@ -72,9 +72,13 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/help');
                   }),
-                  _drawerItem(Icons.info_rounded, 'À propos', () {
+                  _drawerItem(Icons.flag_rounded, 'Missions', () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/about');
+                    Navigator.pushNamed(context, '/missions');
+                  }),
+                  _drawerItem(Icons.menu_book_rounded, 'Guide de Tri', () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/sorting-guide');
                   }),
                   const Divider(color: AppColors.glassBorder, height: 1),
                   _drawerItem(Icons.logout_rounded, 'Déconnexion', () async {

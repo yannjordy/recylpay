@@ -31,6 +31,7 @@ import 'screens/landing_page.dart';
 import 'screens/referral_screen.dart';
 import 'screens/collection_screen.dart';
 import 'screens/missions_screen.dart';
+import 'screens/sorting_guide_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/glass_bottom_nav.dart';
 import 'widgets/app_drawer.dart';
@@ -90,6 +91,7 @@ class RecycPayApp extends StatelessWidget {
           '/about': (_) => const AboutScreen(),
           '/collection': (_) => const CollectionScreen(),
           '/missions': (_) => const MissionsScreen(),
+          '/sorting-guide': (_) => const SortingGuideScreen(),
         },
       ),
     );

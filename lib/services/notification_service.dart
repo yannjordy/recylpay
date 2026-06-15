@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/supabase_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._();
@@ -10,6 +12,65 @@ class NotificationService {
   final List<AppNotification> _notifications = [];
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
+
+  RealtimeChannel? _channel;
+  bool _supabaseEnabled = false;
+
+  void enableRealtime(String userId) {
+    if (!SupabaseService().isInitialized) return;
+    try {
+      _channel = SupabaseService().client
+          .channel('notifications:$userId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            table: 'notifications',
+            filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'user_id', value: userId),
+            callback: (payload) {
+              final data = payload.newRecord;
+              addNotification(AppNotification(
+                id: data['id'] as String,
+                title: data['title'] as String? ?? 'Notification',
+                body: data['body'] as String? ?? '',
+                icon: _iconFromType(data['type'] as String? ?? 'info'),
+                color: _colorFromType(data['type'] as String? ?? 'info'),
+                createdAt: DateTime.parse(data['created_at'] as String),
+              ));
+            },
+          )
+          .subscribe();
+      _supabaseEnabled = true;
+    } catch (_) {
+      _supabaseEnabled = false;
+    }
+  }
+
+  void disableRealtime() {
+    _channel?.unsubscribe();
+    _channel = null;
+    _supabaseEnabled = false;
+  }
+
+  IconData _iconFromType(String type) {
+    switch (type) {
+      case 'mission': return Icons.recycling_rounded;
+      case 'payment': return Icons.wallet_rounded;
+      case 'message': return Icons.message_rounded;
+      case 'achievement': return Icons.emoji_events_rounded;
+      case 'alert': return Icons.warning_rounded;
+      default: return Icons.notifications_rounded;
+    }
+  }
+
+  Color _colorFromType(String type) {
+    switch (type) {
+      case 'mission': return const Color(0xFF2ECC71);
+      case 'payment': return const Color(0xFFF1C40F);
+      case 'message': return const Color(0xFF9B59B6);
+      case 'achievement': return const Color(0xFF3498DB);
+      case 'alert': return const Color(0xFFE74C3C);
+      default: return const Color(0xFF8E8E93);
+    }
+  }
 
   void addNotification(AppNotification notification) {
     _notifications.insert(0, notification);
