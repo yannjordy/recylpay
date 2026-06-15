@@ -14,7 +14,6 @@ class NotificationService {
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
   RealtimeChannel? _channel;
-  bool _supabaseEnabled = false;
 
   void enableRealtime(String userId) {
     if (!SupabaseService().isInitialized) return;
@@ -38,16 +37,12 @@ class NotificationService {
             },
           )
           .subscribe();
-      _supabaseEnabled = true;
-    } catch (_) {
-      _supabaseEnabled = false;
-    }
+    } catch (_) {}
   }
 
   void disableRealtime() {
     _channel?.unsubscribe();
     _channel = null;
-    _supabaseEnabled = false;
   }
 
   IconData _iconFromType(String type) {

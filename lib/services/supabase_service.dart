@@ -17,7 +17,7 @@ class SupabaseService {
   }
 
   Future<void> init(String url, String anonKey) async {
-    await Supabase.initialize(url: url, anonKey: anonKey);
+    await Supabase.initialize(url: url, publishableKey: anonKey);
   }
 
   // Profiles

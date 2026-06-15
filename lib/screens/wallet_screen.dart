@@ -895,16 +895,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _recapRow(String label, String value, Color valueColor) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: AppColors.grey, fontSize: 13)),
-        Text(value, style: TextStyle(color: valueColor, fontSize: 13, fontWeight: FontWeight.w700)),
-      ],
-    );
-  }
-
   Widget _buildHistorySection(WalletProvider wallet) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -969,7 +959,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _txTile(dynamic t, WalletProvider wallet) {
     final isCredit = t.type == 'deposit' || t.type == 'payment_received';
-    final iconData = isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
     final iconColor = isCredit ? AppColors.green : AppColors.red;
 
     IconData typeIcon;

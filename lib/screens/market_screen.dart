@@ -220,7 +220,7 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _estimationMaterial,
+                    initialValue: _estimationMaterial,
                     items: materials.map((m) => DropdownMenuItem(value: m, child: Text(m, style: const TextStyle(fontSize: 13)))).toList(),
                     onChanged: (v) => setState(() => _estimationMaterial = v ?? materials.first),
                     decoration: _inputDeco('Matériau'),

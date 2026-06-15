@@ -5,10 +5,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/pollution_report_model.dart';
 import '../models/recycling_company_model.dart';
-import '../providers/auth_provider.dart';
 import '../providers/map_provider.dart';
 import '../providers/market_provider.dart';
-import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 
