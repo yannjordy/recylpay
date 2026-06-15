@@ -163,15 +163,17 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildBalanceCard(WalletProvider wallet, int points) {
+    final moneyMax = 500000.0;
+    final moneyProgress = (wallet.balance / moneyMax).clamp(0.0, 1.0);
+    final pointsLevel = points ~/ 50;
     final pointsProgress = (points % 50) / 50.0;
-    final currentLevel = points ~/ 50;
-    final nextLevelPoints = (currentLevel + 1) * 50;
+    final nextLevel = (pointsLevel + 1) * 50;
     final levelNames = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant'];
-    final levelName = currentLevel < levelNames.length ? levelNames[currentLevel] : 'Diamant';
+    final levelName = pointsLevel < levelNames.length ? levelNames[pointsLevel] : 'Diamant';
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -225,82 +227,74 @@ class _WalletScreenState extends State<WalletScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Solde disponible',
-            style: TextStyle(color: AppColors.grey, fontSize: 13, fontWeight: FontWeight.w500),
-          ),
+          const Text('Solde disponible', style: TextStyle(color: AppColors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
           Text(
             _fcfx(wallet.balance),
-            style: const TextStyle(
-              color: AppColors.green,
-              fontSize: 42,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -1,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              _balanceStat('Transactions', '${wallet.transactions.length}'),
-              const SizedBox(width: 32),
-              _balanceStat('Dernière', _relDateShort(wallet.transactions.isNotEmpty ? wallet.transactions.first.createdAt : DateTime.now())),
-            ],
+            style: const TextStyle(color: AppColors.green, fontSize: 42, fontWeight: FontWeight.w800, letterSpacing: -1, height: 1.1),
           ),
           const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppColors.yellow.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.star_rounded, color: AppColors.yellow, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$points pts · Niveau $levelName',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '$nextLevelPoints pts pour le prochain niveau',
-                            style: TextStyle(color: AppColors.grey.withValues(alpha: 0.7), fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: pointsProgress,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.yellow),
-                    minHeight: 8,
-                  ),
-                ),
-              ],
-            ),
+          _sliderRow(
+            icon: Icons.monetization_on_rounded,
+            iconColor: AppColors.green,
+            label: '${_fcfx(wallet.balance)}',
+            maxLabel: '500 000 FCFA',
+            value: moneyProgress,
+            barColor: AppColors.green,
+          ),
+          const SizedBox(height: 16),
+          _sliderRow(
+            icon: Icons.star_rounded,
+            iconColor: AppColors.yellow,
+            label: '$points pts · $levelName',
+            maxLabel: '$nextLevel pts',
+            value: pointsProgress,
+            barColor: AppColors.yellow,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _sliderRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String maxLabel,
+    required double value,
+    required Color barColor,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: iconColor, size: 16),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+            Text(maxLabel, style: TextStyle(color: AppColors.grey.withValues(alpha: 0.6), fontSize: 11)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: value,
+            backgroundColor: Colors.white.withValues(alpha: 0.06),
+            valueColor: AlwaysStoppedAnimation<Color>(barColor),
+            minHeight: 10,
+          ),
+        ),
+      ],
     );
   }
 
