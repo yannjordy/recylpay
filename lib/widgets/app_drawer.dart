@@ -76,10 +76,6 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/help');
                   }),
-                  _drawerItem(Icons.flag_rounded, 'Missions', () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/missions');
-                  }),
                   _drawerItem(Icons.menu_book_rounded, 'Guide de Tri', () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/sorting-guide');
