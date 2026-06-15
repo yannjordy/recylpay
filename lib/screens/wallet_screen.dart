@@ -1136,7 +1136,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              if (t.commission != null && t.commission > 0 && t.type == 'payment_received') ...[
+              if (t.commission != null && t.commission > 0 && (t.type == 'payment_received' || t.type == 'deposit')) ...[
                 const SizedBox(height: 2),
                 Text(
                   'dont ${(t.commission as double).toInt()} FCFA de frais',

@@ -28,7 +28,7 @@ class WalletProvider extends ChangeNotifier {
         .where((t) => t.type == 'deposit' || t.type == 'payment_received')
         .fold(0.0, (sum, t) => sum + t.amount)
       - MockData.transactions
-          .where((t) => t.type == 'withdrawal' || t.type == 'commission' || t.type == 'payment_sent')
+          .where((t) => t.type == 'withdrawal' || t.type == 'payment_sent')
           .fold(0.0, (sum, t) => sum + t.amount);
     if (_balance <= 0) _balance = 45250;
     notifyListeners();
@@ -62,20 +62,11 @@ class WalletProvider extends ChangeNotifier {
       id: 'dep_${DateTime.now().millisecondsSinceEpoch}',
       userId: 'user_self',
       type: 'deposit',
-      amount: amount,
+      amount: netAmount,
+      commission: commission,
       status: 'completed',
       reference: 'DEP-${DateTime.now().millisecondsSinceEpoch}',
-      description: 'Dépôt de ${amount.toInt()} FCFA (comm. ${commission.toInt()} FCFA)',
-      createdAt: DateTime.now(),
-    ));
-    _transactions.insert(1, TransactionModel(
-      id: 'com_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'user_self',
-      type: 'commission',
-      amount: commission,
-      status: 'completed',
-      reference: 'COM-${DateTime.now().millisecondsSinceEpoch}',
-      description: 'Commission 2% sur dépôt',
+      description: 'Dépôt de ${amount.toInt()} FCFA · -${commission.toInt()} FCFA de frais',
       createdAt: DateTime.now(),
     ));
     notifyListeners();
