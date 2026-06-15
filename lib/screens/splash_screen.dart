@@ -22,7 +22,8 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     final auth = context.read<AuthProvider>();
-    if (auth.isLoggedIn && auth.user != null) {
+    await auth.checkLoginStatus();
+    if (mounted && auth.isLoggedIn && auth.user != null) {
       Navigator.pushReplacementNamed(context, '/home');
       return;
     }

@@ -133,7 +133,6 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _initProviders();
     _splashCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
     _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _splashCtrl, curve: const Interval(0.0, 0.5, curve: Curves.elasticOut)),
@@ -154,13 +153,6 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
   void dispose() {
     _splashCtrl.dispose();
     super.dispose();
-  }
-
-  void _initProviders() {
-    final auth = context.read<AuthProvider>();
-    if (auth.user == null) {
-      auth.checkLoginStatus();
-    }
   }
 
   @override
