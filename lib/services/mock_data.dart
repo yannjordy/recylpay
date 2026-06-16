@@ -333,6 +333,7 @@ class MockData {
 
       final photoCount = 2 + (i % 3); // 2-4 photos per mission
       final imgs = List.generate(photoCount, (j) => wasteImgs[(i + j) % wasteImgs.length]);
+      final creator = users[i % users.length];
 
       missions.add(MissionModel(
         id: 'mission_$i',
@@ -344,6 +345,10 @@ class MockData {
         delivererName: type == 'livraison' ? users[(i + 5) % users.length].name : null,
         sorterId: type == 'tri' ? users[(i + 8) % users.length].id : null,
         sorterName: type == 'tri' ? users[(i + 8) % users.length].name : null,
+        creatorId: creator.id,
+        creatorName: creator.name,
+        creatorPhotoUrl: creator.photoUrl,
+        creatorRole: creator.role,
         status: status,
         commission: 300.0 + (i * 180) + (i % 7) * 100,
         distance: 0.5 + (i % 15) * 0.8,
@@ -527,7 +532,9 @@ class MockData {
         pricePerKg: price,
         totalAmount: actualW != null ? actualW * price : null,
         status: status,
-        photoUrl: i % 3 == 0 ? 'https://images.unsplash.com/photo-1662611527385-6499f6bfb9cb?auto=format&fit=crop&w=200&h=200&q=80' : null,
+        imageUrls: i % 3 == 0
+            ? ['https://images.unsplash.com/photo-1662611527385-6499f6bfb9cb?auto=format&fit=crop&w=400&h=300&q=80']
+            : [],
         description: descriptions[i % descriptions.length],
         latitude: city.$2 + 0.01,
         longitude: city.$3 + 0.01,

@@ -8,7 +8,7 @@ class WasteCollectionModel {
   final double pricePerKg;
   final double? totalAmount;
   final String status;
-  final String? photoUrl;
+  final List<String> imageUrls;
   final String? description;
   final double latitude;
   final double longitude;
@@ -28,7 +28,7 @@ class WasteCollectionModel {
     required this.pricePerKg,
     this.totalAmount,
     this.status = 'pending',
-    this.photoUrl,
+    this.imageUrls = const [],
     this.description,
     required this.latitude,
     required this.longitude,
@@ -54,7 +54,7 @@ class WasteCollectionModel {
         'price_per_kg': pricePerKg,
         'total_amount': totalAmount ?? calculatedAmount,
         'status': status,
-        'photo_url': photoUrl,
+        'image_urls': imageUrls,
         'description': description,
         'latitude': latitude,
         'longitude': longitude,
@@ -76,7 +76,7 @@ class WasteCollectionModel {
         pricePerKg: (json['price_per_kg'] as num).toDouble(),
         totalAmount: (json['total_amount'] as num?)?.toDouble(),
         status: json['status'] as String? ?? 'pending',
-        photoUrl: json['photo_url'] as String?,
+        imageUrls: json['image_urls'] != null ? List<String>.from(json['image_urls']) : [],
         description: json['description'] as String?,
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
@@ -101,7 +101,7 @@ class WasteCollectionModel {
     double? pricePerKg,
     double? totalAmount,
     String? status,
-    String? photoUrl,
+    List<String>? imageUrls,
     String? description,
     double? latitude,
     double? longitude,
@@ -121,7 +121,7 @@ class WasteCollectionModel {
         pricePerKg: pricePerKg ?? this.pricePerKg,
         totalAmount: totalAmount ?? this.totalAmount,
         status: status ?? this.status,
-        photoUrl: photoUrl ?? this.photoUrl,
+        imageUrls: imageUrls ?? this.imageUrls,
         description: description ?? this.description,
         latitude: latitude ?? this.latitude,
         longitude: longitude ?? this.longitude,

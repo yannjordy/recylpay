@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/mission_provider.dart';
 import '../models/mission_model.dart';
 import '../theme/app_theme.dart';
 import '../utils/extensions.dart';
 import '../widgets/pill_button.dart';
+import 'mission_detail_screen.dart';
 
 class MissionsScreen extends StatefulWidget {
   const MissionsScreen({super.key});
@@ -52,6 +54,13 @@ class _MissionsScreenState extends State<MissionsScreen> {
         ),
       );
     }
+  }
+
+  void _showMissionDetail(MissionModel mission) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => MissionDetailScreen(mission: mission)),
+    );
   }
 
   @override
@@ -249,6 +258,33 @@ class _MissionsScreenState extends State<MissionsScreen> {
               ),
               _buildStatusBadge(mission),
             ],
+          ),
+          const SizedBox(height: 14),
+          // Creator
+          GestureDetector(
+            onTap: () => _showMissionDetail(mission),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.green.withValues(alpha: 0.15),
+                  backgroundImage: mission.creatorPhotoUrl != null ? NetworkImage(mission.creatorPhotoUrl!) : null,
+                  child: mission.creatorPhotoUrl == null
+                      ? const Icon(Icons.person_rounded, color: AppColors.green, size: 16)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    mission.creatorName ?? 'Anonyme',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ),
+                Text('Voir +', style: TextStyle(color: AppColors.green, fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.green, size: 16),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           _buildAddressRow(Icons.location_on_rounded, mission.pickupAddress ?? 'Adresse de ramassage'),

@@ -8,6 +8,10 @@ class MissionModel {
   final String? delivererName;
   final String? sorterId;
   final String? sorterName;
+  final String? creatorId;
+  final String? creatorName;
+  final String? creatorPhotoUrl;
+  final String? creatorRole;
   final String status;
   final double? commission;
   final double? distance;
@@ -33,6 +37,10 @@ class MissionModel {
     this.delivererName,
     this.sorterId,
     this.sorterName,
+    this.creatorId,
+    this.creatorName,
+    this.creatorPhotoUrl,
+    this.creatorRole,
     this.status = 'available',
     this.commission,
     this.distance,
@@ -59,6 +67,10 @@ class MissionModel {
         'deliverer_name': delivererName,
         'sorter_id': sorterId,
         'sorter_name': sorterName,
+        'creator_id': creatorId,
+        'creator_name': creatorName,
+        'creator_photo_url': creatorPhotoUrl,
+        'creator_role': creatorRole,
         'status': status,
         'commission': commission,
         'distance': distance,
@@ -85,6 +97,10 @@ class MissionModel {
         delivererName: json['deliverer_name'] as String?,
         sorterId: json['sorter_id'] as String?,
         sorterName: json['sorter_name'] as String?,
+        creatorId: json['creator_id'] as String?,
+        creatorName: json['creator_name'] as String?,
+        creatorPhotoUrl: json['creator_photo_url'] as String?,
+        creatorRole: json['creator_role'] as String?,
         status: json['status'] as String? ?? 'available',
         commission: (json['commission'] as num?)?.toDouble(),
         distance: (json['distance'] as num?)?.toDouble(),
@@ -147,6 +163,10 @@ class MissionModel {
     String? delivererName,
     String? sorterId,
     String? sorterName,
+    String? creatorId,
+    String? creatorName,
+    String? creatorPhotoUrl,
+    String? creatorRole,
     String? status,
     double? commission,
     double? distance,
@@ -172,6 +192,10 @@ class MissionModel {
         delivererName: delivererName ?? this.delivererName,
         sorterId: sorterId ?? this.sorterId,
         sorterName: sorterName ?? this.sorterName,
+        creatorId: creatorId ?? this.creatorId,
+        creatorName: creatorName ?? this.creatorName,
+        creatorPhotoUrl: creatorPhotoUrl ?? this.creatorPhotoUrl,
+        creatorRole: creatorRole ?? this.creatorRole,
         status: status ?? this.status,
         commission: commission ?? this.commission,
         distance: distance ?? this.distance,

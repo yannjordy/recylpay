@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/waste_collection_model.dart';
@@ -22,6 +24,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   String? _selectedCategory;
   final _weightController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final List<String> _imagePaths = [];
   bool _isSubmitting = false;
 
   @override
@@ -61,6 +64,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       category: _selectedCategory!,
       estimatedWeight: weight,
       pricePerKg: Constants.defaultPrices[_selectedCategory] ?? 0,
+      imageUrls: List.from(_imagePaths),
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
@@ -77,6 +81,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         _selectedCategory = null;
         _weightController.clear();
         _descriptionController.clear();
+        _imagePaths.clear();
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -181,7 +186,35 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
             ),
             if (_estimatedRevenue > 0) ...[
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            // Image picker
+            GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.softBlack,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.glassBorder, style: BorderStyle.solid),
+                ),
+                child: _imagePaths.isEmpty
+                    ? Column(
+                        children: [
+                          Icon(Icons.add_photo_alternate_rounded, color: AppColors.green.withValues(alpha: 0.6), size: 36),
+                          const SizedBox(height: 8),
+                          const Text('Ajouter des photos', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+                        ],
+                      )
+                    : _buildImagePreview(),
+              ),
+            ),
+            if (_imagePaths.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('${_imagePaths.length} photo(s) sélectionnée(s)',
+                  style: const TextStyle(color: AppColors.green, fontSize: 12, fontWeight: FontWeight.w500)),
+            ],
+            const SizedBox(height: 12),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
@@ -233,6 +266,70 @@ class _CollectionScreenState extends State<CollectionScreen> {
         borderSide: BorderSide.none,
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    );
+  }
+
+  Future<void> _pickImages() async {
+    final picker = ImagePicker();
+    final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
+    if (img != null) setState(() => _imagePaths.add(img.path));
+  }
+
+  Widget _buildImagePreview() {
+    return SizedBox(
+      height: 80,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: _imagePaths.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (ctx, i) {
+          if (i == _imagePaths.length) {
+            return GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                width: 72, height: 72,
+                decoration: BoxDecoration(
+                  color: AppColors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.green.withValues(alpha: 0.3)),
+                ),
+                child: const Icon(Icons.add_rounded, color: AppColors.green, size: 28),
+              ),
+            );
+          }
+          return Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(_imagePaths[i]),
+                  width: 72, height: 72, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 72, height: 72,
+                    color: AppColors.softBlack,
+                    child: const Icon(Icons.broken_image_rounded, color: AppColors.grey, size: 28),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 2, right: 2,
+                child: GestureDetector(
+                  onTap: () => setState(() => _imagePaths.removeAt(i)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(3),
+                    child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -335,6 +432,29 @@ class _CollectionScreenState extends State<CollectionScreen> {
               style: const TextStyle(color: AppColors.grey, fontSize: 12),
             ),
           ],
+          if (c.imageUrls.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 64,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: c.imageUrls.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (ctx, i) {
+                  final path = c.imageUrls[i];
+                  final isNetwork = path.startsWith('http');
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: isNetwork
+                        ? Image.network(path, width: 64, height: 64, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _imagePlaceholder())
+                        : Image.file(File(path), width: 64, height: 64, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _imagePlaceholder()),
+                  );
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           if (c.status == 'pending')
             SizedBox(
@@ -377,6 +497,14 @@ class _CollectionScreenState extends State<CollectionScreen> {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: 64, height: 64,
+      color: AppColors.softBlack,
+      child: const Icon(Icons.broken_image_rounded, color: AppColors.grey, size: 24),
     );
   }
 
