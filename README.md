@@ -1,60 +1,84 @@
 # RecycPay
 
-Application de gestion des déchets et recyclage au Cameroun.
+Plateforme de gestion et valorisation des déchets au Cameroun.
 
-## 🚀 Déploiement
+**Frontend :** Flutter Web (PWA) · **Backend :** Node.js/Express 5 · **Base :** PostgreSQL (Supabase)
 
-### Vercel (Frontend Web)
+---
 
-```bash
-# Installer Vercel CLI
-npm install -g vercel
+## Prérequis
 
-# Déployer
-vercel --prod
-```
+- Flutter SDK ≥3.12
+- Node.js ≥22
+- Docker (optionnel, pour le backend)
+- Supabase projet (URL + anon key)
 
-### Supabase (Backend)
-
-1. Crée un projet sur https://supabase.com
-2. Va dans l'éditeur SQL et colle le contenu de `supabase/schema.sql`
-3. Copie l'URL du projet et la clé anon dans `lib/services/supabase_service.dart`
-
-### Minikube (Kubernetes local)
+## Installation
 
 ```bash
-# Démarrer Minikube
-minikube start
-
-# Builder l'image Docker
-docker build -t recylpay-web .
-
-# Charger dans Minikube
-minikube image load recylpay-web
-
-# Déployer
-kubectl apply -f k8s/deployment.yaml
-
-# Voir le service
-minikube service recylpay-web-service
-```
-
-## 📱 Télécharger l'APK
-
-Télécharge la dernière version de l'APK depuis GitHub Actions :
-
-👉 [**Télécharger la dernière version APK**](https://github.com/yannjordy/recylpay/releases/latest)
-
-Ou construis-la localement :
-
-```bash
-flutter build apk --release
-```
-
-> L'APK est automatiquement buildée sur chaque push vers `main` via GitHub Actions.
-
-## 🌐 Build Web
-
-```bash
+# Frontend
+git clone https://github.com/yannjordy/recylpay.git
+cd recylpay
+flutter pub get
 flutter build web --no-tree-shake-icons
+
+# Backend
+cd backend
+npm install
+npm run dev
 ```
+
+## Configuration
+
+Copier `.env.example` vers `.env` et renseigner :
+
+```
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+OPENROUTER_API_KEY=...    # optionnel, IA RecycBot
+JWT_SECRET=...
+DATABASE_URL=postgres://...
+```
+
+## Déploiement
+
+```bash
+# Docker
+docker compose up -d
+
+# Kubernetes
+kubectl apply -f k8s/
+```
+
+## Structure du projet
+
+```
+lib/
+├── main.dart                    # Entry point + routes
+├── models/                      # Data models
+├── providers/                   # State management
+├── screens/                     # UI screens
+├── services/                    # API, mock data, notifications
+├── theme/                       # Dark glass-morphism theme
+├── utils/                       # Constants, helpers
+└── widgets/                     # Reusable components
+
+backend/
+├── src/index.js                 # Express 5 server
+└── src/routes/                  # API endpoints
+
+supabase/schema.sql              # Full database schema
+k8s/                             # Kubernetes manifests
+```
+
+## Build
+
+```bash
+flutter build web --no-tree-shake-icons  # PWA
+flutter build apk                          # Android (nécessite réseau Gradle)
+flutter build ios                          # iOS (nécessite macOS + Xcode)
+```
+
+## Licence
+
+MIT
