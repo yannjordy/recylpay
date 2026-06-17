@@ -1,3 +1,5 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "buildCommand": "flutter build web --no-tree-shake-icons",
+  "outputDirectory": "build/web",
+  "installCommand": "if [ ! -d build ]; then flutter pub get; fi"
 }
